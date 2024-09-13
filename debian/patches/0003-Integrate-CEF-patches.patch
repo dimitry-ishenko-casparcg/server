@@ -1,0 +1,298 @@
+From f14324c49b8583d07c265f3e30cf753644319c6d Mon Sep 17 00:00:00 2001
+From: Dimitry Ishenko <dimitry.ishenko@gmail.com>
+Date: Fri, 13 Sep 2024 15:52:07 -0400
+Subject: [PATCH 3/4] Integrate CEF patches
+
+The patches are from https://github.com/dimitry-ishenko-casparcg/chromium-embedded-117
+---
+ src/CMakeModules/Bootstrap_Linux.cmake   |  34 ++-----
+ src/CMakeModules/Bootstrap_Windows.cmake |  27 +++--
+ src/CMakeModules/patches/cef117.patch    | 120 ++++++++++++++++++++---
+ src/modules/html/CMakeLists.txt          |  18 +---
+ 4 files changed, 132 insertions(+), 67 deletions(-)
+
+diff --git a/src/CMakeModules/Bootstrap_Linux.cmake b/src/CMakeModules/Bootstrap_Linux.cmake
+index 4425faaed..13c7fabc3 100644
+--- a/src/CMakeModules/Bootstrap_Linux.cmake
++++ b/src/CMakeModules/Bootstrap_Linux.cmake
+@@ -1,6 +1,5 @@
+ cmake_minimum_required (VERSION 3.16)
+ 
+-include(ExternalProject)
+ include(FetchContent)
+ 
+ set(ENABLE_HTML ON CACHE BOOL "Enable CEF and HTML producer")
+@@ -56,38 +55,21 @@ FIND_PACKAGE (X11 REQUIRED)
+ 
+ if (ENABLE_HTML)
+     if (USE_SYSTEM_CEF)
+-        set(CEF_LIB_PATH "/usr/lib/casparcg-cef-117")
+-        set(CEF_INCLUDE_PATH "/usr/include/casparcg-cef-117")
+-
+-        set(CEF_LIB
+-            "-Wl,-rpath,${CEF_LIB_PATH} ${CEF_LIB_PATH}/libcef.so"
+-            "${CEF_LIB_PATH}/libcef_dll_wrapper.a"
+-        )
++        find_package(CEF 117 REQUIRED)
+     else()
+-        casparcg_add_external_project(cef)
+-        ExternalProject_Add(cef
++        FetchContent_Declare(cef
+             URL ${CASPARCG_DOWNLOAD_MIRROR}/cef/cef_binary_117.2.5%2Bgda4c36a%2Bchromium-117.0.5938.152_linux64_minimal.tar.bz2
+             URL_HASH SHA1=7e6c9cf591cf3b1dabe65a7611f5fc166df2ec1e
+             DOWNLOAD_DIR ${CASPARCG_DOWNLOAD_CACHE}
+-            CMAKE_ARGS -DUSE_SANDBOX=Off
+-            INSTALL_COMMAND ""
+             PATCH_COMMAND git apply ${CASPARCG_PATCH_DIR}/cef117.patch
+-            BUILD_BYPRODUCTS
+-                "<SOURCE_DIR>/Release/libcef.so"
+-                "<BINARY_DIR>/libcef_dll_wrapper/libcef_dll_wrapper.a"
+-        )
+-        ExternalProject_Get_Property(cef SOURCE_DIR)
+-        ExternalProject_Get_Property(cef BINARY_DIR)
+-
+-        # Note: All of these must be referenced in the BUILD_BYPRODUCTS above, to satisfy ninja
+-        set(CEF_LIB
+-            "${SOURCE_DIR}/Release/libcef.so"
+-            "${BINARY_DIR}/libcef_dll_wrapper/libcef_dll_wrapper.a"
+         )
++        set(USE_SANDBOX OFF CACHE INTERNAL "")
++        FetchContent_MakeAvailable(cef)
++        # CEF is coded with explicit "include" dir in the headers
++        file(CREATE_LINK "." "${cef_SOURCE_DIR}/include/include" SYMBOLIC)
+ 
+-        set(CEF_INCLUDE_PATH "${SOURCE_DIR}")
+-        set(CEF_BIN_PATH "${SOURCE_DIR}/Release")
+-        set(CEF_RESOURCE_PATH "${SOURCE_DIR}/Resources")
++        set(CEF_BIN_PATH "${cef_SOURCE_DIR}/Release")
++        set(CEF_RESOURCE_PATH "${cef_SOURCE_DIR}/Resources")
+     endif()
+ endif ()
+ 
+diff --git a/src/CMakeModules/Bootstrap_Windows.cmake b/src/CMakeModules/Bootstrap_Windows.cmake
+index a7d22f0d8..72fc12fdf 100644
+--- a/src/CMakeModules/Bootstrap_Windows.cmake
++++ b/src/CMakeModules/Bootstrap_Windows.cmake
+@@ -1,6 +1,7 @@
+ cmake_minimum_required (VERSION 3.16)
+ 
+ include(ExternalProject)
++include(FetchContent)
+ 
+ set(BOOST_USE_PRECOMPILED ON CACHE BOOL "Use precompiled boost")
+ 
+@@ -57,7 +58,7 @@ else ()
+ 		--with-libraries=regex
+ 		--with-libraries=system
+ 		--with-libraries=thread
+-	BUILD_COMMAND ./b2 install debug release --prefix=${BOOST_INSTALL_DIR} link=static threading=multi runtime-link=shared -j ${CONFIG_CPU_COUNT} 
++	BUILD_COMMAND ./b2 install debug release --prefix=${BOOST_INSTALL_DIR} link=static threading=multi runtime-link=shared -j ${CONFIG_CPU_COUNT}
+ 	INSTALL_COMMAND ""
+ 	)
+ 	set(BOOST_INCLUDE_PATH "${BOOST_INSTALL_DIR}/include/boost-1_67")
+@@ -213,24 +214,20 @@ set(LIBERATION_FONTS_BIN_PATH "${PROJECT_SOURCE_DIR}/shell/liberation-fonts")
+ casparcg_add_runtime_dependency("${LIBERATION_FONTS_BIN_PATH}/LiberationMono-Regular.ttf")
+ 
+ # CEF
+-if (ENABLE_HTML)
+-	casparcg_add_external_project(cef)
+-	ExternalProject_Add(cef
++if(ENABLE_HTML)
++    FetchContent_Declare(cef
+ 		URL ${CASPARCG_DOWNLOAD_MIRROR}/cef/cef_binary_117.2.5%2Bgda4c36a%2Bchromium-117.0.5938.152_windows64_minimal.tar.bz2
+ 		URL_HASH MD5=cff21bce81bada2a9e5f0afbec0858f0
+ 		DOWNLOAD_DIR ${CASPARCG_DOWNLOAD_CACHE}
+-		CMAKE_ARGS -DUSE_SANDBOX=Off -DCEF_RUNTIME_LIBRARY_FLAG=/MD
+-		INSTALL_COMMAND ""
+-		PATCH_COMMAND git apply ${CASPARCG_PATCH_DIR}/cef117.patch
++        PATCH_COMMAND git apply ${CASPARCG_PATCH_DIR}/cef117.patch
+ 	)
+-	ExternalProject_Get_Property(cef SOURCE_DIR)
+-	ExternalProject_Get_Property(cef BINARY_DIR)
++    set(USE_SANDBOX OFF CACHE INTERNAL "")
++    set(CEF_RUNTIME_LIBRARY_FLAG "/MD" CACHE INTERNAL "")
++    FetchContent_MakeAvailable(cef)
++    file(CREATE_LINK "." "${cef_SOURCE_DIR}/include/include" SYMBOLIC)
+ 
+-	set(CEF_INCLUDE_PATH ${SOURCE_DIR})
+-	set(CEF_BIN_PATH ${SOURCE_DIR}/Release)
+-	set(CEF_RESOURCE_PATH ${SOURCE_DIR}/Resources)
+-	link_directories(${SOURCE_DIR}/Release)
+-	link_directories(${BINARY_DIR}/libcef_dll_wrapper)
++	set(CEF_BIN_PATH ${cef_SOURCE_DIR}/Release)
++	set(CEF_RESOURCE_PATH ${cef_SOURCE_DIR}/Resources)
+ 
+ 	casparcg_add_runtime_dependency_dir("${CEF_RESOURCE_PATH}/locales")
+ 	casparcg_add_runtime_dependency("${CEF_RESOURCE_PATH}/chrome_100_percent.pak")
+@@ -248,7 +245,7 @@ if (ENABLE_HTML)
+ 	casparcg_add_runtime_dependency("${CEF_BIN_PATH}/vk_swiftshader.dll")
+ 	casparcg_add_runtime_dependency("${CEF_BIN_PATH}/vk_swiftshader_icd.json")
+ 	casparcg_add_runtime_dependency("${CEF_BIN_PATH}/vulkan-1.dll")
+-endif ()
++endif()
+ 
+ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+ set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT casparcg)
+diff --git a/src/CMakeModules/patches/cef117.patch b/src/CMakeModules/patches/cef117.patch
+index 9b4b7ea7e..487c30d2d 100644
+--- a/src/CMakeModules/patches/cef117.patch
++++ b/src/CMakeModules/patches/cef117.patch
+@@ -1,16 +1,114 @@
+---- CMakeLists.txt
+-+++ CMakeLists.txt
+-@@ -132,11 +132,8 @@
++--- a/CMakeLists.txt
+++++ b/CMakeLists.txt
++@@ -132,8 +132,8 @@
+  # Global setup.
+  #
+- 
++
+ -# For VS2022 and Xcode 12+ support.
+ -cmake_minimum_required(VERSION 3.21)
+++# Ubuntu 20.04 compat
+++cmake_minimum_required(VERSION 3.16)
++
++ # Only generate Debug and Release configuration types.
++ set(CMAKE_CONFIGURATION_TYPES Debug Release)
++@@ -235,21 +235,10 @@ endif()
++ # Display configuration settings.
++ PRINT_CEF_CONFIG()
++
+ -
+--# Only generate Debug and Release configuration types.
+--set(CMAKE_CONFIGURATION_TYPES Debug Release)
+-+# VS2022 and Xcode 12+ support needs 3.21, but ubuntu22.04 ships with 3.20
+-+cmake_minimum_required(VERSION 3.20)
+- 
+- # Project name.
+- # TODO: Change this line to match your project name when you copy this file.
++ #
++-# Define the API documentation target.
+++# Install targets.
++ #
++
++-find_package(Doxygen)
++-if(DOXYGEN_FOUND)
++-  add_custom_target(apidocs ALL
++-    # Generate documentation in the docs/html directory.
++-    COMMAND "${DOXYGEN_EXECUTABLE}" Doxyfile
++-    # Write a docs/index.html file.
++-    COMMAND ${CMAKE_COMMAND} -E echo "<html><head><meta http-equiv=\"refresh\" content=\"0;URL='html/index.html'\"/></head></html>" > docs/index.html
++-    WORKING_DIRECTORY "${CEF_ROOT}"
++-    COMMENT "Generating API documentation with Doxygen..."
++-    VERBATIM )
++-else()
++-  message(WARNING "Doxygen must be installed to generate API documentation.")
++-endif()
+++install(DIRECTORY ${CEF_INCLUDE_DIR}/ DESTINATION ${CEF_INSTALL_INCLUDEDIR})
+++install(DIRECTORY ${CEF_BINARY_DIR}/ ${CEF_RESOURCE_DIR}/ DESTINATION ${CEF_INSTALL_LIBDIR})
+++install(PROGRAMS  ${CEF_BINARY_DIR}/chrome-sandbox DESTINATION ${CEF_INSTALL_LIBDIR})
++--- a/cmake/cef_variables.cmake
+++++ b/cmake/cef_variables.cmake
++@@ -26,9 +26,10 @@ endif()
++
++ # Determine the project architecture.
++ if(NOT DEFINED PROJECT_ARCH)
++-  if(("${CMAKE_HOST_SYSTEM_PROCESSOR}" STREQUAL "arm64") OR
++-     ("${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}" STREQUAL "ARM64"))
+++  if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
++     set(PROJECT_ARCH "arm64")
+++  elseif(("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l"))
+++    set(PROJECT_ARCH "arm")
++   elseif(CMAKE_SIZEOF_VOID_P MATCHES 8)
++     set(PROJECT_ARCH "x86_64")
++   else()
++@@ -630,3 +631,17 @@ if(OS_WINDOWS)
++       )
++   endif()
++ endif()
+++
+++#
+++# Install configuration.
+++#
+++
+++include(GNUInstallDirs)
+++
+++set(VERSION 117)
+++set(CEF_INCLUDE_DIR ${_CEF_ROOT}/include)
+++set(CEF_INSTALL_DIR_SUFFIX cef/${VERSION})
+++
+++set(CEF_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR}/${CEF_INSTALL_DIR_SUFFIX})
+++set(CEF_INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR}/${CEF_INSTALL_DIR_SUFFIX})
+++set(CEF_INSTALL_CMAKEDIR ${CMAKE_INSTALL_LIBDIR}/cmake/CEF${VERSION})
++--- /dev/null
+++++ b/libcef_dll/CEFConfig.cmake
++@@ -0,0 +1,2 @@
+++include("${CMAKE_CURRENT_LIST_DIR}/CEFTargets.cmake")
+++add_library(CEF::CEF ALIAS CEF::libcef_dll_wrapper)
++--- a/libcef_dll/CMakeLists.txt
+++++ b/libcef_dll/CMakeLists.txt
++@@ -782,3 +782,34 @@ target_compile_definitions(${CEF_TARGET}
++
++ # Remove the default "lib" prefix from the resulting library.
++ set_target_properties(${CEF_TARGET} PROPERTIES PREFIX "")
+++
+++#
+++# Install targets.
+++#
+++
+++target_include_directories(${CEF_TARGET} PUBLIC
+++  $<BUILD_INTERFACE:${CEF_INCLUDE_DIR}>
+++  $<INSTALL_INTERFACE:${CEF_INSTALL_INCLUDEDIR}>
+++)
+++target_link_directories(${CEF_TARGET} PUBLIC
+++  $<BUILD_INTERFACE:${CEF_BINARY_DIR}>
+++  $<INSTALL_INTERFACE:${CEF_INSTALL_LIBDIR}>
+++)
+++if(OS_WINDOWS)
+++  target_link_libraries(${CEF_TARGET} PUBLIC libcef.lib)
+++else()
+++  target_link_libraries(${CEF_TARGET} PUBLIC cef)
+++endif()
+++
+++install(TARGETS ${CEF_TARGET} EXPORT CEF DESTINATION ${CEF_INSTALL_LIBDIR})
+++install(EXPORT CEF FILE CEFTargets.cmake NAMESPACE CEF:: DESTINATION ${CEF_INSTALL_CMAKEDIR})
+++install(FILES CEFConfig.cmake DESTINATION ${CEF_INSTALL_CMAKEDIR})
+++
+++include(CMakePackageConfigHelpers)
+++write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/CEFConfigVersion.cmake
+++  VERSION ${VERSION}
+++  COMPATIBILITY SameMajorVersion
+++)
+++install(FILES ${CMAKE_CURRENT_BINARY_DIR}/CEFConfigVersion.cmake DESTINATION ${CEF_INSTALL_CMAKEDIR})
+++
+++add_library(CEF::CEF ALIAS ${CEF_TARGET})
+diff --git a/src/modules/html/CMakeLists.txt b/src/modules/html/CMakeLists.txt
+index c155dc6c0..7690049f7 100644
+--- a/src/modules/html/CMakeLists.txt
++++ b/src/modules/html/CMakeLists.txt
+@@ -24,22 +24,10 @@ casparcg_add_module_project(html
+ target_include_directories(html PRIVATE
+     ..
+     ../..
+-    ${CEF_INCLUDE_PATH}
+-    )
++)
++
++target_link_libraries(html CEF::CEF)
+ 
+ set_target_properties(html PROPERTIES FOLDER modules)
+ source_group(sources\\producer producer/*)
+ source_group(sources ./*)
+-
+-if(MSVC)
+-	target_link_libraries(html
+-		libcef
+-		optimized Release/libcef_dll_wrapper
+-		debug Debug/libcef_dll_wrapper
+-	)
+-else()
+-	target_link_libraries(html
+-		${CEF_LIB}
+-	)
+-endif()
+-
+-- 
+2.43.0
+

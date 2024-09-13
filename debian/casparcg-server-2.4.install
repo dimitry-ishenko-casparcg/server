@@ -1,0 +1,3 @@
+#!/usr/bin/dh-exec
+build/staging/bin/casparcg => usr/bin/casparcg-server-2.4
+build/staging/casparcg.config => usr/share/casparcg-server-2.4/casparcg.config.example

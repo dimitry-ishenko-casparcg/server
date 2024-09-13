@@ -1,0 +1,51 @@
+Source: server-2.4
+Section: video
+Priority: optional
+Maintainer: Dimitry Ishenko <dimitry.ishenko@gmail.com>
+Rules-Requires-Root: no
+Build-Depends:
+ debhelper-compat (= 12),
+ cmake,
+ dh-exec,
+ fontconfig,
+ fonts-liberation,
+ libavcodec-dev,
+ libavdevice-dev,
+ libavfilter-dev,
+ libavformat-dev,
+ libavutil-dev,
+ libboost-chrono-dev (>= 1.67.0),
+ libboost-coroutine-dev (>= 1.67.0),
+ libboost-date-time-dev (>= 1.67.0),
+ libboost-filesystem-dev (>= 1.67.0),
+ libboost-locale-dev (>= 1.67.0),
+ libboost-log-dev (>= 1.67.0),
+ libboost-regex-dev (>= 1.67.0),
+ libboost-system-dev (>= 1.67.0),
+ libboost-thread-dev (>= 1.67.0),
+ libcef117-dev,
+ libfreeimage-dev,
+ libglew-dev,
+ libopenal-dev,
+ libpostproc-dev,
+ libsfml-dev,
+ libswresample-dev,
+ libswscale-dev,
+ libtbb-dev,
+ pkg-config,
+ zlib1g-dev,
+Standards-Version: 4.6.2
+Homepage: https://casparcg.com
+Vcs-Browser: https://github.com/CasparCG/server
+Vcs-Git: https://github.com/CasparCG/server.git
+
+Package: casparcg-server-2.4
+Architecture: any
+Multi-Arch: foreign
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+Description: CasparCG Server
+ CasparCG Server is a Windows and Linux software used to play out professional
+ graphics, audio and video to multiple outputs. It has been in 24/7 broadcast
+ production since 2006.

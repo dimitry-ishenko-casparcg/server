@@ -1,0 +1,4 @@
+0001-Restore-linking.patch
+0002-Use-fontconfig-on-Linux-to-find-the-font.patch
+0003-Integrate-CEF-patches.patch
+0004-Clean-up-html-producer-make-file.patch
