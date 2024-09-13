@@ -1,5 +1,5 @@
-server-2.4 (2.4.0-1) UNRELEASED; urgency=medium
+server-2.4 (2.4.0-1) unstable; urgency=medium
 
   * Initial release.
 
- -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Fri, 06 Sep 2024 19:08:56 -0400
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Fri, 13 Sep 2024 19:34:30 -0400
