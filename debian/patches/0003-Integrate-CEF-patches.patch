@@ -223,9 +223,11 @@ index 9b4b7ea7e..487c30d2d 100644
 ++set(CEF_INSTALL_CMAKEDIR ${CMAKE_INSTALL_LIBDIR}/cmake/CEF${VERSION})
 +--- /dev/null
 ++++ b/libcef_dll/CEFConfig.cmake
-+@@ -0,0 +1,2 @@
++@@ -0,0 +1,4 @@
 ++include("${CMAKE_CURRENT_LIST_DIR}/CEFTargets.cmake")
-++add_library(CEF::CEF ALIAS CEF::libcef_dll_wrapper)
+++
+++add_library(CEF::CEF INTERFACE IMPORTED)
+++target_link_libraries(CEF::CEF INTERFACE CEF::libcef_dll_wrapper)
 +--- a/libcef_dll/CMakeLists.txt
 ++++ b/libcef_dll/CMakeLists.txt
 +@@ -782,3 +782,34 @@ target_compile_definitions(${CEF_TARGET}
