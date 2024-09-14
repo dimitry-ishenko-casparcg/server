@@ -1,3 +1,10 @@
+server-2.4 (2.4.0-2) unstable; urgency=medium
+
+  * Fix build on non-Intel platforms
+  * Update CEF patch
+
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Sat, 14 Sep 2024 12:27:27 -0400
+
 server-2.4 (2.4.0-1) unstable; urgency=medium
 
   * Initial release.
