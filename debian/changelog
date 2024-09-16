@@ -1,3 +1,10 @@
+server-2.4 (2.4.0-3) unstable; urgency=medium
+
+  * Fix compilation on 32bit platforms
+  * Don't track debian/files
+
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Sun, 15 Sep 2024 20:10:04 -0400
+
 server-2.4 (2.4.0-2) unstable; urgency=medium
 
   * Fix build on non-Intel platforms
