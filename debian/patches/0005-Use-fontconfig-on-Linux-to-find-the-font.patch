@@ -1,7 +1,7 @@
-From e454ea9088850ce614d1795f33a6195c96f86612 Mon Sep 17 00:00:00 2001
+From f66a64dd781670a4528f39fd9f0746494c5ad1b7 Mon Sep 17 00:00:00 2001
 From: Dimitry Ishenko <dimitry.ishenko@gmail.com>
 Date: Tue, 10 Sep 2024 17:52:07 -0400
-Subject: [PATCH 2/4] Use fontconfig on Linux to find the font
+Subject: [PATCH 5/5] Use fontconfig on Linux to find the font
 
 ---
  src/core/diagnostics/osd_graph.cpp | 20 +++++++++++++++++---

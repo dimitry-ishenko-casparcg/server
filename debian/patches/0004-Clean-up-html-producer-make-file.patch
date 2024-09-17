@@ -1,7 +1,7 @@
-From d89a2d486347a45718b24716ed64ce7b6e2c3c7b Mon Sep 17 00:00:00 2001
+From c34a828991057324353b92f41ed6043f4562b2d5 Mon Sep 17 00:00:00 2001
 From: Dimitry Ishenko <dimitry.ishenko@gmail.com>
 Date: Tue, 10 Sep 2024 01:02:23 -0400
-Subject: [PATCH 4/4] Clean up html producer make file
+Subject: [PATCH 4/5] Clean up html producer make file
 
 ---
  src/modules/html/CMakeLists.txt | 31 ++++++++++++++-----------------

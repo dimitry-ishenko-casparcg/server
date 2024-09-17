@@ -1,5 +1,5 @@
-0001-Restore-linking.patch
-0002-Use-fontconfig-on-Linux-to-find-the-font.patch
+0001-fix-compilation-on-32bit-platforms-1562.patch
+0002-fix-Remove-RPATH-linking-1560.patch
 0003-Integrate-CEF-patches.patch
 0004-Clean-up-html-producer-make-file.patch
-0005-fix-compilation.patch
+0005-Use-fontconfig-on-Linux-to-find-the-font.patch
