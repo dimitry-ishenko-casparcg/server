@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=CasparCG Server
+Icon=casparcg-server-2.4
+Exec=casparcg-server-2.4
+Terminal=true
+Categories=AudioVideo

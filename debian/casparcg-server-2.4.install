@@ -1,3 +1,9 @@
 #!/usr/bin/dh-exec
 build/staging/bin/casparcg => usr/bin/casparcg-server-2.4
 build/staging/casparcg.config => usr/share/casparcg-server-2.4/casparcg.config.example
+
+debian/casparcg-server-2.4.desktop => usr/share/applications/casparcg-server-2.4.desktop
+
+debian/casparcg-server_48x48.png   => /usr/share/icons/hicolor/48x48/apps/casparcg-server-2.4.png
+debian/casparcg-server_128x128.png => /usr/share/icons/hicolor/128x128/apps/casparcg-server-2.4.png
+debian/casparcg-server_256x256.png => /usr/share/icons/hicolor/256x256/apps/casparcg-server-2.4.png
