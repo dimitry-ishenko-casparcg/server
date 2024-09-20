@@ -2,6 +2,7 @@
 build/staging/bin/casparcg => usr/bin/casparcg-server-2.4
 build/staging/casparcg.config => usr/share/casparcg-server-2.4/casparcg.config
 
+debian/server.sh => usr/libexec/casparcg/casparcg-server-2.4
 debian/server.desktop => usr/share/applications/casparcg-server-2.4.desktop
 
 debian/server-48x48.png   => usr/share/icons/hicolor/48x48/apps/casparcg-server-2.4.png
