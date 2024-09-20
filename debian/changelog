@@ -1,3 +1,11 @@
+server-2.4 (2.4.0-5) unstable; urgency=medium
+
+  * Ignore build dir
+  * Set terminal WM_CLASS when launching from .desktop file
+  * Use generic names
+
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Fri, 20 Sep 2024 19:11:44 -0400
+
 server-2.4 (2.4.0-4) unstable; urgency=medium
 
   * Install .desktop file and icons
