@@ -1,3 +1,64 @@
+server-2.4 (2.4.1-1) unstable; urgency=medium
+
+  [ Dimitry Ishenko ]
+  * Fix CEF patch
+  * Remove upstreamed patches
+
+  [ Julian Waller ]
+  * v2.4.1-stable
+  * chore: update changelog
+  * chore: disable build uploading for linux as it doesn't work
+  * fix: support building against ffmpeg 7.0
+  * fix: update freeimage to r1909 with cve patches from fedora #1554
+
+  [ Dimitry Ishenko ]
+  * chore: update editorconfig (#1565)
+  * fix: Respect EXIF rotate flag (#1568)
+
+  [ Julian Waller ]
+  * fix: show local ndi sources
+
+  [ Dimitry Ishenko ]
+  * fix: Remove RPATH linking (#1560)
+  * fix: compilation on 32bit platforms (#1562)
+  * chore: Add support for language servers (#1558)
+
+  [ Julian Waller ]
+  * chore: update windows building instructions
+  * fix: windows debug build error
+  * chore: update windows building instructions
+  * chore: set timeout for build upload
+  * fix: using in and seek for ffmpeg producer can result in incorrect
+    duration
+  * chore: update changelog
+
+  [ Raivis Rengelis ]
+  * fix: race condition when destroying route_producer (#1552)
+
+  [ Jesper Ek ]
+  * fix: ffmpeg producer reject ndi://
+
+  [ Jean-Pierre Coetzee ]
+  * chore: Improve Dockerfile for non-docker applications (#1541)
+
+  [ Julian Waller ]
+  * fix: build failing when doxygen is installed
+  * fix: decklink subregion vertical height limit on mixed formats #1538
+  * chore: enable build publish for v2.4.x branch
+  * fix: dismiss cmake policy warning
+  * chore: clang-format
+  * fix: decklink subregion vertical offset #1538
+  * chore: enable build publish for v2.4.x branch
+  * Revert "fix: replace tbbmalloc with os native implementations"
+  * fix: ensure decklink subregion copy doesn't copy beyond the height
+    of the frame #1538
+  * fix: remove check for `leveldown.node` in auto restart script #1534
+
+  [ Simon Liddicott ]
+  * Move cache-path under html in config example. (#1536)
+
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Tue, 08 Oct 2024 21:08:23 -0400
+
 server-2.4 (2.4.0-5) unstable; urgency=medium
 
   * Ignore build dir
