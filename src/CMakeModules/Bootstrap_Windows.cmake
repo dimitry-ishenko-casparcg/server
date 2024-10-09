@@ -2,6 +2,10 @@ cmake_minimum_required (VERSION 3.16)
 
 include(ExternalProject)
 
+if(POLICY CMP0135)
+	cmake_policy(SET CMP0135 NEW)
+endif()
+
 set(BOOST_USE_PRECOMPILED ON CACHE BOOL "Use precompiled boost")
 
 set(CASPARCG_RUNTIME_DEPENDENCIES_RELEASE "" CACHE INTERNAL "")
@@ -109,6 +113,10 @@ set(TBB_BIN_PATH "${SOURCE_DIR}/redist/intel64/vc14")
 link_directories("${SOURCE_DIR}/lib/intel64/vc14")
 casparcg_add_runtime_dependency("${TBB_BIN_PATH}/tbb12.dll" "Release")
 casparcg_add_runtime_dependency("${TBB_BIN_PATH}/tbb12_debug.dll" "Debug")
+casparcg_add_runtime_dependency("${TBB_BIN_PATH}/tbbmalloc.dll" "Release")
+casparcg_add_runtime_dependency("${TBB_BIN_PATH}/tbbmalloc_debug.dll" "Debug")
+casparcg_add_runtime_dependency("${TBB_BIN_PATH}/tbbmalloc_proxy.dll" "Release")
+casparcg_add_runtime_dependency("${TBB_BIN_PATH}/tbbmalloc_proxy_debug.dll" "Debug")
 
 # GLEW
 casparcg_add_external_project(glew)
@@ -151,8 +159,8 @@ casparcg_add_runtime_dependency("${SFML_BIN_PATH}/sfml-system-2.dll" "Release")
 # FREEIMAGE
 casparcg_add_external_project(freeimage)
 ExternalProject_Add(freeimage
-	URL ${CASPARCG_DOWNLOAD_MIRROR}/freeimage/FreeImage3180Win32Win64.zip
-	URL_HASH MD5=393d3df75b14cbcb4887da1c395596e2
+	URL ${CASPARCG_DOWNLOAD_MIRROR}/freeimage/FreeImage319-r1909.zip
+	URL_HASH MD5=c19087de6b42c7e17f71c6c8d4ad158d
 	DOWNLOAD_DIR ${CASPARCG_DOWNLOAD_CACHE}
 	CONFIGURE_COMMAND ""
 	BUILD_COMMAND ""

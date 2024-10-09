@@ -46,7 +46,7 @@ jobs:
                   echo "artifactname=$TARGET" >> $GITHUB_OUTPUT
                     
                   # check if a release branch, or master, or a tag
-                  if [[ "${{ github.ref_name }}" == "master" || "${{ github.ref_name }}" == "2.3.x-lts" ]]
+                  if [[ "${{ github.ref_name }}" == "master" || "${{ github.ref_name }}" == "v2.4.x" ]]
                   then
                     # Only report if we have an sftp password
                     if [ -n "${{ secrets.SFTP_PASSWORD }}" ]
@@ -63,6 +63,7 @@ jobs:
             - name: Copy single file to remote
               uses: garygrossgarten/github-action-scp@v0.8.0
               if: ${{ steps.rename-build.outputs.uploadname }}
+              timeout-minutes: 5
               with:
                   local: "${{ steps.rename-build.outputs.uploadname }}"
                   remote: "${{ secrets.SFTP_ROOT }}/${{ github.ref_name }}/${{ steps.rename-build.outputs.uploadname }}"
