@@ -21,7 +21,7 @@ index 4425faaed..4863ee1c8 100644
 -include(ExternalProject)
  include(FetchContent)
  
- set(ENABLE_HTML ON CACHE BOOL "Enable CEF and HTML producer")
+ if(POLICY CMP0135)
 @@ -56,38 +55,19 @@ FIND_PACKAGE (X11 REQUIRED)
  
  if (ENABLE_HTML)
@@ -77,8 +77,8 @@ index a7d22f0d8..1d41be3d5 100644
  include(ExternalProject)
 +include(FetchContent)
  
- set(BOOST_USE_PRECOMPILED ON CACHE BOOL "Use precompiled boost")
- 
+ if(POLICY CMP0135)
+ 	cmake_policy(SET CMP0135 NEW)
 @@ -57,7 +58,7 @@ else ()
  		--with-libraries=regex
  		--with-libraries=system
