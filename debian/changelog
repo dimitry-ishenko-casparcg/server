@@ -1,3 +1,13 @@
+server-2.4 (2.4.2-1) unstable; urgency=medium
+
+  [ Julian Waller ]
+  * v2.4.2-stable
+  * chore: update changelog
+  * fix: decklink output with driver 14.3 broken
+  * fix: decklink output with driver 14.3 broken
+
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Fri, 21 Feb 2025 11:09:04 -0500
+
 server-2.4 (2.4.1-1) unstable; urgency=medium
 
   [ Dimitry Ishenko ]
