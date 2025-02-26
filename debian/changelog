@@ -1,3 +1,29 @@
+server-2.4 (2.4.3-1) unstable; urgency=medium
+
+  [ Julian Waller ]
+  * v2.4.3-stable
+  * chore: update changelog
+
+  [ Niklas P Andersson ]
+  * fix: ffmpeg crash on invalid frame header
+
+  [ Julian Waller ]
+  * fix: decklink producer crashing with ffmpeg 7 #1582
+  * fix: improve error handling for invalid config files #1571
+  * fix: flush logs before exit #1571
+  * fix: cross-channel routes from progressive to interlaced showing
+    lots of black #1576
+  * fix: check audio cadence values look sane before accepting format
+    #1588
+  * fix: don't try to unit html producer if it hasn't been init
+  * fix: set frame_rate for rtmp streams #1462
+  * fix: update image_producer state during init #1601
+  * fix: transition_producer ignoring some transforms of input frames
+    #1602
+  * chore: update gitignore
+
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Wed, 26 Feb 2025 12:17:00 -0500
+
 server-2.4 (2.4.2-1) unstable; urgency=medium
 
   [ Julian Waller ]
