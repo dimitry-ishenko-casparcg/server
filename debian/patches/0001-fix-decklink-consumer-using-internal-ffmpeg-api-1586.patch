@@ -1,0 +1,24 @@
+From 8eb9916cea666617261c2378304b95427f53d506 Mon Sep 17 00:00:00 2001
+From: Julian Waller <git@julusian.co.uk>
+Date: Tue, 29 Apr 2025 19:35:22 +0100
+Subject: [PATCH] fix: decklink consumer using internal ffmpeg api #1586
+
+---
+ src/modules/decklink/producer/decklink_producer.cpp | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/modules/decklink/producer/decklink_producer.cpp b/src/modules/decklink/producer/decklink_producer.cpp
+index 92c8068dc..cd4688ac5 100644
+--- a/src/modules/decklink/producer/decklink_producer.cpp
++++ b/src/modules/decklink/producer/decklink_producer.cpp
+@@ -743,7 +743,6 @@ class decklink_producer : public IDeckLinkInputCallback
+                         return S_OK;
+                     }
+ 
+-                    audio_filter_.sink->inputs[0]->min_samples = audio_cadence_[0];
+                     if (av_buffersink_get_frame_flags(audio_filter_.sink, av_audio.get(), AV_BUFFERSINK_FLAG_PEEK) <
+                         0) {
+                         return S_OK;
+-- 
+2.43.0
+

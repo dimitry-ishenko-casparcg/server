@@ -1,3 +1,4 @@
+0001-fix-decklink-consumer-using-internal-ffmpeg-api-1586.patch
 0003-Integrate-CEF-patches.patch
 0004-Clean-up-html-producer-make-file.patch
 0005-Use-fontconfig-on-Linux-to-find-the-font.patch
