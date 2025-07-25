@@ -2,29 +2,53 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Source: https://github.com/CasparCG/server.git
 Upstream-Name: server
 
-Files:
- *
+Files: *
 Copyright:
- 2010-2024 CasparCG Authors
+ 2018, Norsk rikskringkasting AS
+ 2010-2018, Sveriges Television AB <info@casparcg.com>
 License: GPL-3+
 
-Files:
- debian/*
-Copyright:
- 2024 Dimitry Ishenko <dimitry.ishenko@gmail.com>
+Files: debian/*
+Copyright: 2024-2025, Dimitry Ishenko <dimitry.ishenko@gmail.com>
 License: GPL-3+
- This package is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 3 of the License, or
- (at your option) any later version.
- .
- This package is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
- .
- You should have received a copy of the GNU General Public License
- along with this program. If not, see <https://www.gnu.org/licenses/>
-Comment:
- On Debian systems, the complete text of the GNU General
- Public License version 3 can be found in "/usr/share/common-licenses/GPL-3".
+
+Files: src/CMakeModules/FindFFmpeg.cmake
+Copyright:
+ 2008, Alexander Neundorf <neundorf@kde.org>
+ 2006, Matthias Kretz <kretz@kde.org>
+ 2011, Michael Jansen <kde@michael-jansen.biz>
+License: BSD-3-clause
+
+Files: src/common/gl/*
+Copyright: 2007-2009, Laurent Gomila <laurent.gom@gmail.com>
+License: Zlib
+
+Files: src/common/tweener.cpp
+Copyright:
+ 2001, Robert Penner
+ 2011, Sveriges Television AB <info@casparcg.com>
+License: BSD-3-clause or GPL-3+
+
+Files:
+ src/modules/decklink/interop/*
+ src/modules/decklink/linux_interop/*
+Copyright: 2009-2019, Blackmagic Design
+License: BSL
+
+Files: src/modules/bluefish/interop/*
+Copyright: 2017, Bluefish Technologies Pty Ltd
+License: Boost
+
+Files: src/modules/newtek/interop/*
+Copyright: 2023-2024, Vizrt NDI AB
+License: MIT
+
+Files: src/protocol/osc/oscpack/*
+Copyright: 2004-2005, Ross Bencina <rossb@audiomulch.com>
+License: MIT/X11
+
+Files: src/shell/liberation-fonts/*
+Copyright:
+ 2010, Google Corporation
+ 2012, Red Hat, Inc
+License: OFL-1.1
