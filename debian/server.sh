@@ -1,6 +1,6 @@
 #!/bin/bash
 
-server=casparcg-server-2.4
+server=casparcg-server-2.5
 
 [[ -n "$CASPARCG_SERVER_ROOT" ]] && cd "$CASPARCG_SERVER_ROOT"
 [[ -e casparcg.config ]] || cp /usr/share/$server/casparcg.config .

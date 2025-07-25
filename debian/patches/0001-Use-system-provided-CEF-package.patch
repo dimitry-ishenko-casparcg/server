@@ -1,0 +1,23 @@
+Description: Use system-provided CEF package
+Author: Dimitry Ishenko <dimitry.ishenko@gmail.com>
+
+--- server-2.5-2.5.0~pre1.orig/src/CMakeModules/Bootstrap_Linux.cmake
++++ server-2.5-2.5.0~pre1/src/CMakeModules/Bootstrap_Linux.cmake
+@@ -47,16 +47,7 @@ endif()
+ 
+ if (ENABLE_HTML)
+     if (USE_SYSTEM_CEF)
+-        set(CEF_LIB_PATH "/usr/lib/casparcg-cef-131")
+-
+-        add_library(CEF::CEF INTERFACE IMPORTED)
+-        target_include_directories(CEF::CEF INTERFACE
+-            "/usr/include/casparcg-cef-131"
+-        )
+-        target_link_libraries(CEF::CEF INTERFACE
+-            "-Wl,-rpath,${CEF_LIB_PATH} ${CEF_LIB_PATH}/libcef.so"
+-            "${CEF_LIB_PATH}/libcef_dll_wrapper.a"
+-        )
++        find_package(CEF 131 REQUIRED)
+     else()
+         casparcg_add_external_project(cef)
+         ExternalProject_Add(cef

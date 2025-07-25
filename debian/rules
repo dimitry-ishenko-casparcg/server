@@ -5,4 +5,4 @@ export DH_VERBOSE = 1
 	dh $@ -Dsrc -Bbuild
 
 override_dh_auto_configure:
-	dh_auto_configure -- -DUSE_STATIC_BOOST=OFF -DUSE_SYSTEM_CEF=ON -DUSE_SYSTEM_FFMPEG=ON
+	dh_auto_configure -- -DUSE_STATIC_BOOST=OFF -DUSE_SYSTEM_CEF=ON

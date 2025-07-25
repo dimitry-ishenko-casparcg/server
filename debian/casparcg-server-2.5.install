@@ -1,0 +1,10 @@
+#!/usr/bin/dh-exec
+build/staging/bin/casparcg => usr/bin/casparcg-server-2.5
+build/staging/casparcg.config => usr/share/casparcg-server-2.5/casparcg.config
+
+debian/server.sh => usr/libexec/casparcg/casparcg-server-2.5
+debian/server.desktop => usr/share/applications/casparcg-server-2.5.desktop
+
+debian/server-48x48.png   => usr/share/icons/hicolor/48x48/apps/casparcg-server-2.5.png
+debian/server-128x128.png => usr/share/icons/hicolor/128x128/apps/casparcg-server-2.5.png
+debian/server-256x256.png => usr/share/icons/hicolor/256x256/apps/casparcg-server-2.5.png

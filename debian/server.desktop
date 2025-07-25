@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
 Name=CasparCG Server
-Icon=casparcg-server-2.4
-Exec=/usr/libexec/casparcg/casparcg-server-2.4
+Icon=casparcg-server-2.5
+Exec=/usr/libexec/casparcg/casparcg-server-2.5
 Categories=AudioVideo

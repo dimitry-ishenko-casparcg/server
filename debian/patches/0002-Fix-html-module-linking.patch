@@ -1,0 +1,14 @@
+Description: Fix html module linking
+Author: Dimitry Ishenko <dimitry.ishenko@gmail.com>
+
+--- server-2.5-2.5.0~pre1.orig/src/modules/html/CMakeLists.txt
++++ server-2.5-2.5.0~pre1/src/modules/html/CMakeLists.txt
+@@ -18,7 +18,7 @@ casparcg_add_module_project(html
+ 	UNINIT_FUNCTION "html::uninit"
+ 	CLI_INTERCEPTOR "html::intercept_command_line"
+ )
+-target_link_libraries(html PRIVATE CEF::CEF)
++target_link_libraries(html PUBLIC CEF::CEF)
+ 
+ set_target_properties(html PROPERTIES FOLDER modules)
+ source_group(sources\\producer producer/*)

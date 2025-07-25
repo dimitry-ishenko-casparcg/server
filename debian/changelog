@@ -1,3 +1,9 @@
+server-2.5 (2.5.0~pre1-1) UNRELEASED; urgency=medium
+
+  *
+
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Fri, 25 Jul 2025 10:16:58 -0400
+
 server-2.4 (2.4.3-3) unstable; urgency=medium
 
   * Fix compilation with ffmpeg >= 7

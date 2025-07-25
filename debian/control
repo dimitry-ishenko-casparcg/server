@@ -1,10 +1,10 @@
-Source: server-2.4
+Source: server-2.5
 Section: video
 Priority: optional
 Maintainer: Dimitry Ishenko <dimitry.ishenko@gmail.com>
 Rules-Requires-Root: no
 Build-Depends:
- debhelper-compat (= 12),
+ debhelper-compat (= 13),
  cmake,
  dh-exec,
  fontconfig,
@@ -14,7 +14,6 @@ Build-Depends:
  libavfilter-dev,
  libavformat-dev,
  libavutil-dev,
- libboost-chrono-dev (>= 1.67.0),
  libboost-coroutine-dev (>= 1.67.0),
  libboost-date-time-dev (>= 1.67.0),
  libboost-filesystem-dev (>= 1.67.0),
@@ -23,8 +22,8 @@ Build-Depends:
  libboost-regex-dev (>= 1.67.0),
  libboost-system-dev (>= 1.67.0),
  libboost-thread-dev (>= 1.67.0),
- libcef117-dev,
- libfreeimage-dev,
+ libcef131-dev,
+ libegl-dev,
  libglew-dev,
  libopenal-dev,
  libpostproc-dev,
@@ -40,13 +39,13 @@ Homepage: https://casparcg.com
 Vcs-Browser: https://github.com/CasparCG/server
 Vcs-Git: https://github.com/CasparCG/server.git
 
-Package: casparcg-server-2.4
+Package: casparcg-server-2.5
 Architecture: any
 Multi-Arch: foreign
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
- libcef117,
+ libcef131,
  sensible-utils,
  x11-utils,
 Description: CasparCG Server
