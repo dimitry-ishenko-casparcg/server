@@ -24,6 +24,7 @@
 #include "../util/av_assert.h"
 #include "../util/av_util.h"
 
+#include <common/bit_depth.h>
 #include <common/diagnostics/graph.h>
 #include <common/env.h>
 #include <common/executor.h>
@@ -32,6 +33,7 @@
 #include <common/scope_exit.h>
 #include <common/timer.h>
 
+#include <core/consumer/channel_info.h>
 #include <core/frame/frame.h>
 #include <core/video_format.h>
 
@@ -73,6 +75,7 @@ extern "C" {
 #include <tbb/parallel_invoke.h>
 
 #include <memory>
+#include <optional>
 #include <thread>
 
 namespace caspar { namespace ffmpeg {
@@ -100,6 +103,7 @@ struct Stream
            AVCodecID                           codec_id,
            const core::video_format_desc&      format_desc,
            bool                                realtime,
+           common::bit_depth                   depth,
            std::map<std::string, std::string>& options)
     {
         std::map<std::string, std::string> stream_options;
@@ -178,8 +182,10 @@ struct Stream
                 const auto sar = boost::rational<int>(format_desc.square_width, format_desc.square_height) /
                                  boost::rational<int>(format_desc.width, format_desc.height);
 
+                const auto pix_fmt = (depth == common::bit_depth::bit8) ? AV_PIX_FMT_YUVA422P : AV_PIX_FMT_YUVA422P10;
+
                 auto args = (boost::format("video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:sar=%d/%d:frame_rate=%d/%d") %
-                             format_desc.width % format_desc.height % AV_PIX_FMT_YUVA422P % format_desc.duration %
+                             format_desc.width % format_desc.height % pix_fmt % format_desc.duration %
                              (format_desc.time_scale * format_desc.field_count) % sar.numerator() % sar.denominator() %
                              (format_desc.framerate.numerator() * format_desc.field_count) %
                              format_desc.framerate.denominator())
@@ -291,9 +297,9 @@ struct Stream
         } else if (codec->type == AVMEDIA_TYPE_AUDIO) {
             st->time_base = {1, av_buffersink_get_sample_rate(sink)};
 
-            enc->sample_fmt     = static_cast<AVSampleFormat>(av_buffersink_get_format(sink));
-            enc->sample_rate    = av_buffersink_get_sample_rate(sink);
-            enc->time_base      = st->time_base;
+            enc->sample_fmt  = static_cast<AVSampleFormat>(av_buffersink_get_format(sink));
+            enc->sample_rate = av_buffersink_get_sample_rate(sink);
+            enc->time_base   = st->time_base;
 
 #if FFMPEG_NEW_CHANNEL_LAYOUT
             FF(av_buffersink_get_ch_layout(sink, &enc->ch_layout));
@@ -480,8 +486,10 @@ struct ffmpeg_consumer : public core::frame_consumer
     tbb::concurrent_bounded_queue<core::const_frame> frame_buffer_;
     std::thread                                      frame_thread_;
 
+    common::bit_depth depth_;
+
   public:
-    ffmpeg_consumer(std::string path, std::string args, bool realtime)
+    ffmpeg_consumer(std::string path, std::string args, bool realtime, common::bit_depth depth)
         : channel_index_([&] {
             boost::crc_16_type result;
             result.process_bytes(path.data(), path.length());
@@ -490,6 +498,7 @@ struct ffmpeg_consumer : public core::frame_consumer
         , realtime_(realtime)
         , path_(std::move(path))
         , args_(std::move(args))
+        , depth_(depth)
     {
         state_["file/path"] = u8(path_);
 
@@ -511,14 +520,14 @@ struct ffmpeg_consumer : public core::frame_consumer
 
     // frame consumer
 
-    void initialize(const core::video_format_desc& format_desc, int channel_index) override
+    void initialize(const core::video_format_desc& format_desc, const core::channel_info& channel_info, int port_index) override
     {
         if (frame_thread_.joinable()) {
             CASPAR_THROW_EXCEPTION(invalid_operation() << msg_info("Cannot reinitialize ffmpeg-consumer."));
         }
 
         format_desc_   = format_desc;
-        channel_index_ = channel_index;
+        channel_index_ = channel_info.index;
 
         graph_->set_text(print());
 
@@ -539,7 +548,7 @@ struct ffmpeg_consumer : public core::frame_consumer
 
                 static boost::regex prot_exp("^.+:.*");
                 if (!boost::regex_match(path_, prot_exp)) {
-                    if (!full_path.is_complete()) {
+                    if (!full_path.is_absolute()) {
                         full_path = u8(env::media_folder()) + path_;
                     }
 
@@ -574,7 +583,7 @@ struct ffmpeg_consumer : public core::frame_consumer
                     if (oc->oformat->video_codec == AV_CODEC_ID_H264 && options.find("preset:v") == options.end()) {
                         options["preset:v"] = "veryfast";
                     }
-                    video_stream.emplace(oc, ":v", oc->oformat->video_codec, format_desc, realtime_, options);
+                    video_stream.emplace(oc, ":v", oc->oformat->video_codec, format_desc, realtime_, depth_, options);
 
                     {
                         std::lock_guard<std::mutex> lock(state_mutex_);
@@ -584,7 +593,7 @@ struct ffmpeg_consumer : public core::frame_consumer
 
                 std::optional<Stream> audio_stream;
                 if (oc->oformat->audio_codec != AV_CODEC_ID_NONE) {
-                    audio_stream.emplace(oc, ":a", oc->oformat->audio_codec, format_desc, realtime_, options);
+                    audio_stream.emplace(oc, ":a", oc->oformat->audio_codec, format_desc, realtime_, depth_, options);
                 }
 
                 if (!(oc->oformat->flags & AVFMT_NOFILE)) {
@@ -732,7 +741,8 @@ struct ffmpeg_consumer : public core::frame_consumer
 
 spl::shared_ptr<core::frame_consumer> create_consumer(const std::vector<std::wstring>&     params,
                                                       const core::video_format_repository& format_repository,
-                                                      const std::vector<spl::shared_ptr<core::video_channel>>& channels)
+                                                      const std::vector<spl::shared_ptr<core::video_channel>>& channels,
+                                                      const core::channel_info& channel_info)
 {
     if (params.size() < 2 || (!boost::iequals(params.at(0), L"STREAM") && !boost::iequals(params.at(0), L"FILE")))
         return core::frame_consumer::empty();
@@ -742,16 +752,19 @@ spl::shared_ptr<core::frame_consumer> create_consumer(const std::vector<std::wst
     for (auto n = 2; n < params.size(); ++n) {
         args.emplace_back(u8(params[n]));
     }
-    return spl::make_shared<ffmpeg_consumer>(path, boost::join(args, " "), boost::iequals(params.at(0), L"STREAM"));
+    return spl::make_shared<ffmpeg_consumer>(
+        path, boost::join(args, " "), boost::iequals(params.at(0), L"STREAM"), channel_info.depth);
 }
 
 spl::shared_ptr<core::frame_consumer>
 create_preconfigured_consumer(const boost::property_tree::wptree&                      ptree,
                               const core::video_format_repository&                     format_repository,
-                              const std::vector<spl::shared_ptr<core::video_channel>>& channels)
+                              const std::vector<spl::shared_ptr<core::video_channel>>& channels,
+                              const core::channel_info&                                channel_info)
 {
     return spl::make_shared<ffmpeg_consumer>(u8(ptree.get<std::wstring>(L"path", L"")),
                                              u8(ptree.get<std::wstring>(L"args", L"")),
-                                             ptree.get(L"realtime", false));
+                                             ptree.get(L"realtime", false),
+                                             channel_info.depth);
 }
 }} // namespace caspar::ffmpeg

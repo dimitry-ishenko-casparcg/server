@@ -48,7 +48,7 @@ boost::property_tree::wptree pt;
 void check_is_configured()
 {
     if (pt.empty())
-        CASPAR_THROW_EXCEPTION(invalid_operation() << msg_info(L"Enviroment properties has not been configured"));
+        CASPAR_THROW_EXCEPTION(invalid_operation() << msg_info(L"Environment properties has not been configured"));
 }
 
 std::wstring resolve_or_create(const std::wstring& folder)
@@ -116,7 +116,7 @@ void configure(const std::wstring& filename)
         }
 
         ftemplate =
-            clean_path(boost::filesystem::complete(paths.get(L"template-path", initial + L"/template/")).wstring());
+            clean_path(boost::filesystem::absolute(paths.get(L"template-path", initial + L"/template/")).wstring());
         data = clean_path(paths.get(L"data-path", initial + L"/data/"));
     } catch (...) {
         CASPAR_LOG(error) << L" ### Invalid configuration file. ###";

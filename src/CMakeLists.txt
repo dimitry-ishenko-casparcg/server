@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
 
 # Project settings
-PROJECT ("CasparCG Server")
-SET (CONFIG_VERSION_MAJOR 2)
-SET (CONFIG_VERSION_MINOR 4)
-SET (CONFIG_VERSION_BUG 3)
-SET (CONFIG_VERSION_TAG "Stable")
+project("CasparCG Server")
+set(CONFIG_VERSION_MAJOR 2)
+set(CONFIG_VERSION_MINOR 5)
+set(CONFIG_VERSION_BUG 0)
+set(CONFIG_VERSION_TAG "Dev")
 
 # support for language servers (eg, clangd or ccls)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -33,7 +33,12 @@ set(CONFIG_VERSION_GIT_HASH "N/A")
 if(DEFINED ENV{GIT_HASH} AND NOT $ENV{GIT_HASH} STREQUAL "")
     set(CONFIG_VERSION_GIT_HASH "$ENV{GIT_HASH}")
 elseif(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/../.git")
-    exec_program("${GIT_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/../" ARGS rev-parse --verify --short HEAD OUTPUT_VARIABLE CONFIG_VERSION_GIT_HASH)
+    execute_process(
+            COMMAND "${GIT_EXECUTABLE}" rev-parse --verify --short HEAD
+            WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/../"
+            OUTPUT_VARIABLE CONFIG_VERSION_GIT_HASH
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
 endif()
 
 cmake_host_system_information(RESULT CONFIG_CPU_COUNT QUERY NUMBER_OF_PHYSICAL_CORES)

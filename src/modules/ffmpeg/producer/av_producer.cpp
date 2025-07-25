@@ -75,6 +75,27 @@ struct Frame
 // TODO (fix) Handle ts discontinuities.
 // TODO (feat) Forward options.
 
+core::color_space get_color_space(const std::shared_ptr<AVFrame>& video)
+{
+    auto result = core::color_space::bt709;
+    if (video) {
+        switch (video->colorspace) {
+            case AVColorSpace::AVCOL_SPC_BT2020_NCL:
+                result = core::color_space::bt2020;
+                break;
+            case AVColorSpace::AVCOL_SPC_BT470BG:
+            case AVColorSpace::AVCOL_SPC_SMPTE170M:
+            case AVColorSpace::AVCOL_SPC_SMPTE240M:
+                result = core::color_space::bt601;
+                break;
+            default:
+                break;
+        }
+    }
+
+    return result;
+}
+
 class Decoder
 {
     Decoder(const Decoder&)            = delete;
@@ -172,10 +193,18 @@ class Decoder
                     } else {
                         FF_RET(ret, "avcodec_receive_frame");
 
+                        // TODO: Maybe Fixed in:
+                        // https://github.com/FFmpeg/FFmpeg/commit/33203a08e0a26598cb103508327a1dc184b27bc6
                         // NOTE This is a workaround for DVCPRO HD.
+#if LIBAVCODEC_VERSION_MAJOR < 61
                         if (av_frame->width > 1024 && av_frame->interlaced_frame) {
                             av_frame->top_field_first = 1;
                         }
+#else
+                        if (av_frame->width > 1024 && (av_frame->flags & AV_FRAME_FLAG_INTERLACED)) {
+                            av_frame->flags |= AV_FRAME_FLAG_TOP_FIELD_FIRST;
+                        }
+#endif
 
                         // TODO (fix) is this always best?
                         av_frame->pts = av_frame->best_effort_timestamp;
@@ -187,10 +216,19 @@ class Decoder
 #endif
                         if (duration_pts <= 0) {
                             if (ctx->codec_type == AVMEDIA_TYPE_VIDEO) {
+#if LIBAVCODEC_VERSION_MAJOR < 62
+                                const int ticks_per_frame = ctx->ticks_per_frame;
+#else
+                                // https://github.com/FFmpeg/FFmpeg/commit/e930b834a928546f9cbc937f6633709053448232#diff-115616f8a2b59cab3aac4e7f4c8c31e69e94e7fcfa339b9f65b0bf34308aa80fR682
+                                const int ticks_per_frame =
+                                    (ctx->codec_descriptor && (ctx->codec_descriptor->props & AV_CODEC_PROP_FIELDS))
+                                        ? 2
+                                        : 1;
+#endif
                                 const auto ticks = av_stream_get_parser(st) ? av_stream_get_parser(st)->repeat_pict + 1
-                                                                            : ctx->ticks_per_frame;
+                                                                            : ticks_per_frame;
                                 duration_pts     = static_cast<int64_t>(AV_TIME_BASE) * ctx->framerate.den * ticks /
-                                               ctx->framerate.num / ctx->ticks_per_frame;
+                                               ctx->framerate.num / ticks_per_frame;
                                 duration_pts = av_rescale_q(duration_pts, {1, AV_TIME_BASE}, st->time_base);
                             } else if (ctx->codec_type == AVMEDIA_TYPE_AUDIO) {
                                 duration_pts = av_rescale_q(av_frame->nb_samples, {1, ctx->sample_rate}, st->time_base);
@@ -527,13 +565,26 @@ struct Filter
                                               AV_PIX_FMT_RGBA,
                                               AV_PIX_FMT_ABGR,
                                               AV_PIX_FMT_YUV444P,
+                                              AV_PIX_FMT_YUV444P10,
+                                              AV_PIX_FMT_YUV444P12,
                                               AV_PIX_FMT_YUV422P,
+                                              AV_PIX_FMT_YUV422P10,
+                                              AV_PIX_FMT_YUV422P12,
                                               AV_PIX_FMT_YUV420P,
+                                              AV_PIX_FMT_YUV420P10,
+                                              AV_PIX_FMT_YUV420P12,
                                               AV_PIX_FMT_YUV410P,
                                               AV_PIX_FMT_YUVA444P,
                                               AV_PIX_FMT_YUVA422P,
                                               AV_PIX_FMT_YUVA420P,
                                               AV_PIX_FMT_UYVY422,
+                                              // bwdif needs planar rgb
+                                              AV_PIX_FMT_GBRP,
+                                              AV_PIX_FMT_GBRP10,
+                                              AV_PIX_FMT_GBRP12,
+                                              AV_PIX_FMT_GBRP16,
+                                              AV_PIX_FMT_GBRAP,
+                                              AV_PIX_FMT_GBRAP16,
                                               AV_PIX_FMT_NONE};
             FF(av_opt_set_int_list(sink, "pix_fmts", pix_fmts, -1, AV_OPT_SEARCH_CHILDREN));
 #ifdef _MSC_VER
@@ -642,12 +693,13 @@ struct AVProducer::Impl
     std::string afilter_;
     std::string vfilter_;
 
-    int              seekable_       = 2;
-    int64_t          frame_count_    = 0;
-    bool             frame_flush_    = true;
-    int64_t          frame_time_     = AV_NOPTS_VALUE;
-    int64_t          frame_duration_ = AV_NOPTS_VALUE;
-    core::draw_frame frame_;
+    int                              seekable_ = 2;
+    core::frame_geometry::scale_mode scale_mode_;
+    int64_t                          frame_count_    = 0;
+    bool                             frame_flush_    = true;
+    int64_t                          frame_time_     = AV_NOPTS_VALUE;
+    int64_t                          frame_duration_ = AV_NOPTS_VALUE;
+    core::draw_frame                 frame_;
 
     std::deque<Frame>         buffer_;
     mutable boost::mutex      buffer_mutex_;
@@ -672,7 +724,8 @@ struct AVProducer::Impl
          std::optional<int64_t>               seek,
          std::optional<int64_t>               duration,
          bool                                 loop,
-         int                                  seekable)
+         int                                  seekable,
+         core::frame_geometry::scale_mode     scale_mode)
         : frame_factory_(frame_factory)
         , format_desc_(format_desc)
         , format_tb_({format_desc.duration, format_desc.time_scale * format_desc.field_count})
@@ -685,6 +738,7 @@ struct AVProducer::Impl
         , afilter_(afilter)
         , vfilter_(vfilter)
         , seekable_(seekable)
+        , scale_mode_(scale_mode)
         , video_executor_(L"video-executor")
         , audio_executor_(L"audio-executor")
     {
@@ -760,7 +814,7 @@ struct AVProducer::Impl
         }
 
         {
-            const auto start =  start_.load();
+            const auto start = start_.load();
             if (duration_ == AV_NOPTS_VALUE && input_->duration > 0) {
                 if (start != AV_NOPTS_VALUE) {
                     duration_ = input_->duration - start;
@@ -804,14 +858,11 @@ struct AVProducer::Impl
                 auto start    = start_.load();
                 auto duration = duration_.load();
 
-                start = start != AV_NOPTS_VALUE ? start : 0;
-                // duration is inclusive, end must be set one frame duration earlier
-                auto end      = duration != AV_NOPTS_VALUE ? start + duration - frame.duration : INT64_MAX;
-                auto next_pts = frame.pts != AV_NOPTS_VALUE ? frame.pts + frame.duration : 0;
-                // check whether the next frame will last beyond the end time
-                auto time = next_pts ? next_pts + frame.duration : 0;
-
-                buffer_eof_ = (video_filter_.eof && audio_filter_.eof) || time > end;
+                start       = start != AV_NOPTS_VALUE ? start : 0;
+                auto end    = duration != AV_NOPTS_VALUE ? start + duration : INT64_MAX;
+                auto time   = frame.pts != AV_NOPTS_VALUE ? frame.pts + frame.duration : 0;
+                buffer_eof_ = (video_filter_.eof && audio_filter_.eof) ||
+                              av_rescale_q(time, TIME_BASE_Q, format_tb_) >= av_rescale_q(end, TIME_BASE_Q, format_tb_);
 
                 if (buffer_eof_) {
                     if (loop_ && frame_count_ > 2) {
@@ -890,7 +941,8 @@ struct AVProducer::Impl
                 frame.duration   = av_rescale_q(frame.audio->nb_samples, {1, sr}, TIME_BASE_Q);
             }
 
-            frame.frame       = core::draw_frame(make_frame(this, *frame_factory_, frame.video, frame.audio));
+            frame.frame = core::draw_frame(
+                make_frame(this, *frame_factory_, frame.video, frame.audio, get_color_space(frame.video), scale_mode_));
             frame.frame_count = frame_count_++;
 
             graph_->set_value("decode-time", decode_timer.elapsed() * format_desc_.fps * 0.5);
@@ -1214,7 +1266,8 @@ AVProducer::AVProducer(std::shared_ptr<core::frame_factory> frame_factory,
                        std::optional<int64_t>               seek,
                        std::optional<int64_t>               duration,
                        std::optional<bool>                  loop,
-                       int                                  seekable)
+                       int                                  seekable,
+                       core::frame_geometry::scale_mode     scale_mode)
     : impl_(new Impl(std::move(frame_factory),
                      std::move(format_desc),
                      std::move(name),
@@ -1225,7 +1278,8 @@ AVProducer::AVProducer(std::shared_ptr<core::frame_factory> frame_factory,
                      std::move(seek),
                      std::move(duration),
                      std::move(loop.value_or(false)),
-                     seekable))
+                     seekable,
+                     scale_mode))
 {
 }
 

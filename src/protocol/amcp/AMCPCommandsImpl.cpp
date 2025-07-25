@@ -30,7 +30,6 @@
 #include "../util/http_request.h"
 #include "AMCPCommandQueue.h"
 #include "amcp_args.h"
-#include "amcp_command_repository.h"
 
 #include <common/env.h>
 
@@ -41,6 +40,8 @@
 #include <common/os/filesystem.h>
 #include <common/param.h>
 
+#include <core/consumer/frame_consumer.h>
+#include <core/consumer/frame_consumer_registry.h>
 #include <core/consumer/output.h>
 #include <core/diagnostics/call_context.h>
 #include <core/diagnostics/osd_graph.h>
@@ -49,6 +50,7 @@
 #include <core/producer/cg_proxy.h>
 #include <core/producer/color/color_producer.h>
 #include <core/producer/frame_producer.h>
+#include <core/producer/frame_producer_registry.h>
 #include <core/producer/stage.h>
 #include <core/producer/transition/sting_producer.h>
 #include <core/producer/transition/transition_producer.h>
@@ -478,8 +480,11 @@ std::wstring add_command(command_context& ctx)
     core::diagnostics::scoped_call_context save;
     core::diagnostics::call_context::for_thread().video_channel = ctx.channel_index + 1;
 
-    auto consumer = ctx.static_context->consumer_registry->create_consumer(
-        ctx.parameters, ctx.static_context->format_repository, get_channels(ctx));
+    auto consumer =
+        ctx.static_context->consumer_registry->create_consumer(ctx.parameters,
+                                                               ctx.static_context->format_repository,
+                                                               get_channels(ctx),
+                                                               ctx.channel.raw_channel->get_consumer_channel_info());
     ctx.channel.raw_channel->output().add(ctx.layer_index(consumer->index()), consumer);
 
     return L"202 ADD OK\r\n";
@@ -497,7 +502,10 @@ std::wstring remove_command(command_context& ctx)
         }
 
         index = ctx.static_context->consumer_registry
-                    ->create_consumer(ctx.parameters, ctx.static_context->format_repository, get_channels(ctx))
+                    ->create_consumer(ctx.parameters,
+                                      ctx.static_context->format_repository,
+                                      get_channels(ctx),
+                                      ctx.channel.raw_channel->get_consumer_channel_info())
                     ->index();
     }
 
@@ -510,8 +518,17 @@ std::wstring remove_command(command_context& ctx)
 
 std::wstring print_command(command_context& ctx)
 {
-    ctx.channel.raw_channel->output().add(ctx.static_context->consumer_registry->create_consumer(
-        {L"IMAGE"}, ctx.static_context->format_repository, get_channels(ctx)));
+    std::vector<std::wstring> params = {L"IMAGE"};
+    if (!ctx.parameters.empty()) {
+        params.resize(ctx.parameters.size() + 1);
+        std::copy(std::cbegin(ctx.parameters), std::cend(ctx.parameters), params.begin() + 1);
+    }
+
+    ctx.channel.raw_channel->output().add(
+        ctx.static_context->consumer_registry->create_consumer(params,
+                                                               ctx.static_context->format_repository,
+                                                               get_channels(ctx),
+                                                               ctx.channel.raw_channel->get_consumer_channel_info()));
 
     return L"202 PRINT OK\r\n";
 }
@@ -1376,8 +1393,11 @@ std::wstring channel_grid_command(command_context& ctx)
     params.emplace_back(L"0");
     params.emplace_back(L"NAME");
     params.emplace_back(L"Channel Grid Window");
-    auto screen = ctx.static_context->consumer_registry->create_consumer(
-        params, ctx.static_context->format_repository, get_channels(ctx));
+    auto screen =
+        ctx.static_context->consumer_registry->create_consumer(params,
+                                                               ctx.static_context->format_repository,
+                                                               get_channels(ctx),
+                                                               ctx.channel.raw_channel->get_consumer_channel_info());
 
     self.raw_channel->output().add(screen);
 

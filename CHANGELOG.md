@@ -1,3 +1,39 @@
+CasparCG 2.5.0 Stable
+==========================================
+
+### Core
+##### Improvements
+* Initial support for HDR. This is limited to a subset of producers and consumers at this stage.
+* Build for Windows with VS2022
+* Rework linux builds to produce ubuntu deb files
+* Update ffmpeg to 7.0
+* Reimplement mixer transforms, to handle routes correctly
+* Support more pixel formats from ffmpeg, to preserve colour accuracy better
+* Support running on headless linux
+##### Fixes
+* Build with boost 1.85/1.86
+* Only produce mixed frames on channels which have consumers
+* Routed channels not compositing correctly when channel used a MIXER KEY
+* Handle audio for fractional framerates properly
+
+### Producers
+##### Improvements
+* FFmpeg: Support loading with a scaling-mode, to configure how clips get fit into the channel
+* Image: Support loading with a scaling-mode, to configure how images get fit into the channel
+* Image: Replace freeimage with ffmpeg
+* HTML: Update CEF to 131
+##### Fixes
+* Route: Use full field rate when performing i->p channel route
+
+### Consumers
+##### Improvements
+* Screen: Set size and position from AMCP
+* Image: Propagate AMCP parameters from PRINT command
+
+##### Fixes
+*
+
+
 CasparCG 2.4.3 Stable
 ==========================================
 
@@ -37,7 +73,7 @@ CasparCG 2.4.1 Stable
 * Fix bad config file examples
 * Fix `casparcg_auto_restart.bat` not starting scanner
 * Revert removal of tbbmalloc, due to notable performance loss on windows
-* Supress some cmake build warnings
+* Suppress some cmake build warnings
 * Build failure when doxygen installed on system
 * Build failures with ffmpeg 7.0
 * Revert RPATH linking changes
@@ -63,7 +99,7 @@ CasparCG 2.4.0 Stable
 
 ### Core
 ##### Improvements
-* Custom resultions can be specified in casparcg.config
+* Custom resolutions can be specified in casparcg.config
 * Interlaced mixer pipeline to ensure field accuracy
 * Preserve unicode characters in console input/output
 * Producers to be run at startup can be defined in casparcg.config
@@ -344,7 +380,7 @@ FFMPEG
  * FFMPEG video filter support.
  * FFMPEG audio filter support.
  * Complex FFMPEG filters (VF, AF).
- * CALL SEEK return actually seeked value.
+ * CALL SEEK return actually sought value.
  * All AMCP options are based on channel format.
  * Misc improvements, cleanup and fixes.
 
