@@ -1,8 +1,232 @@
-server-2.5 (2.5.0~pre1-1) UNRELEASED; urgency=medium
+server-2.5 (2.5.0~pre1-1) unstable; urgency=medium
 
-  *
+  [ Dimitry Ishenko ]
+  * d/rules: preserve RPATH
+  * debian: update install rules
+  * d/copyright: fix
+  * d/options: ignore .github dir
+  * debian: update for server-2.5
+  * Merge tag 'v2.5.0-pre1' into debian
 
- -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Fri, 25 Jul 2025 10:16:58 -0400
+  [ Niklas P Andersson ]
+  * feat: support ffmpeg producer producing yuv444p10 and yuv444p12
+    pixel formats (#1646)
+  * fix: Fix bug where depth metadata on textures from the cache didn't
+    reflect actual depth (#1645)
+
+  [ Jacob Lifshay ]
+  * chore: remove vestigial dependency on boost chrono (#1635)
+
+  [ Robert (Jamie) Munro ]
+  * fix: Fix typos in comments and strings (#1630)
+
+  [ Jacob Lifshay ]
+  * fix: Compilation issues with ffmpeg master (#1626)
+
+  [ Julian Waller ]
+  * fix: correctly set requested sample count for decklink producer
+    #1628
+  * chore: update changelog
+  * fix: pass channel_info object to consumer factory methods (#1614)
+  * fix: decklink consumer using internal ffmpeg api #1586
+  * fix: handle i->p routes at full field rate
+  * chore: always pass tag to const_frame
+  * feat: support running without x11 on linux (#1624)
+
+  [ Thomas Kaltz III ]
+  * fix: handle fractional framerates with stream tags (#1615)
+
+  [ Dimitry Ishenko ]
+  * chore: use GLEW::glew target
+
+  [ Julian Waller ]
+  * chore: fix windows link
+  * chore: some cmake tidying
+  * chore: use install target on linux for packaging a dir
+
+  [ Dimitry Ishenko ]
+  * chore: use OpenAL target
+
+  [ D-mo ]
+  * chore: update windows sfml to 2.6.2 and modernise cmake usage
+    (#1620)
+
+  [ Matthias Nagel ]
+  * chore: fix SFML linking order (#1617)
+
+  [ Julian Waller ]
+  * chore: add missing includes
+  * chore: format
+  * feat: support planar rgb formats from ffmpeg, preserving rgb sources
+    through bwdif #1605
+  * fix: bad_cast in route_producer #1612
+  * feat: replace freeimage with ffmpeg (#1608)
+  * chore: fix dockerfile
+  * chore: update building, and remove support for non-system ffmpeg
+  * chore: fix compiler warning on msvc with builtin cmake
+  * feat: rework mixer transforms (#1598)
+  * chore: update building #1611
+  * chore: fix windows build with newer vs2022
+  * chore: update changelog
+  * fix: remove buffer sync_queue #1600
+  * fix: update image_producer state during init #1601
+  * fix: transition_producer ignoring some transforms of input frames
+    #1602
+  * chore: remove a few unnecessary pimpl uses
+  * chore: fix windows build with vs builtin generator
+  * chore: update windows building guide
+  * fix: set frame_rate for rtmp streams #1462
+  * fix: last frame or two of clips not being played #1365 #1393 #1497
+  * fix: incorrect layer frame with keyer compositing #1595 #1592
+  * chore: update format
+  * chore: update linux building docs. Invert logic to prefer building
+    with system dependencies
+  * chore: update changelog
+  * chore: fix build error
+  * fix: check audio cadence values look sane before accepting format
+    #1588
+  * fix: don't try to unit html producer if it hasn't been init
+  * fix: missed property
+  * feat: perform less cpu conversions with the image producer
+  * feat: support straight alpha in mixer shader
+  * feat: propagate parameters to PRINT command to image consumer
+  * chore: format
+  * chore: minor tidying to cmake files
+  * fix: set layer_depth on draw_frame properly #1592
+  * chore: reduce some unnecessary includes
+  * chore: upload linux builds as zip of debs
+  * fix: improve error handling for invalid config files #1571
+  * fix: flush logs before exit #1571
+  * fix: cross-channel routes from progressive to interlaced showing
+    lots of black #1576
+  * fix: decklink producer crashing with ffmpeg 7 #1582
+  * feat: only mix frames in channels which have a consumer attached
+  * feat: update cef to 131 (#1594)
+  * chore: fix scp remote key
+  * chore: fix scp parameter order
+  * chore: attempt to fix linux build uploading
+  * fix: some cmake warnings
+
+  [ Niklas P Andersson ]
+  * fix: ffmpeg crash on invalid frame header
+
+  [ Oscar Cowdery Lack ]
+  * fix: boost 1.85/1.86 (#1584)
+
+  [ Julian Waller ]
+  * fix: decklink output with driver 14.3 broken
+  * chore: remove examples for old system-audio config fields
+
+  [ Niklas P Andersson ]
+  * fix: wrong widths in ffmpeg::pixel_format_desc (#1580)
+
+  [ D-mo ]
+  * feat: support for scaling modes (#1566)
+
+  [ Julian Waller ]
+  * fix: update freeimage to r1909 with cve patches from fedora #1554
+
+  [ D-mo ]
+  * chore: nested namespace declarations are part of C++17 (#1570)
+  * feat: Use fontconfig on Linux to find the font (#1559)
+  * chore: update editorconfig (#1565)
+  * fix: Respect EXIF rotate flag (#1568)
+
+  [ Julian Waller ]
+  * fix: show local ndi sources
+  * chore: update ndi sdk to 'NDI 2024-05-06 r139791 v6.0.1'
+
+  [ D-mo ]
+  * fix: Remove RPATH linking (#1560)
+  * fix: compilation on 32bit platforms (#1562)
+  * chore: Add support for language servers (#1558)
+  * chore: Use casparcg-cef-117 for linux-system builds (#1555)
+
+  [ Julian Waller ]
+  * chore: update windows building instructions
+  * fix: windows debug build error
+  * chore: update windows building instructions
+  * chore: update readme
+  * chore: set timeout for build upload
+  * fix: windows ffmpeg 7.0 build
+  * chore: fix window build errors
+  * chore: cleanup build logging
+  * chore: correct windows boost hash
+  * feat: support ffmpeg 7.0
+  * chore: update ffmpeg to 7.0
+  * chore: update boost to 1.74 (requiring ubuntu 22.04 minimum)
+  * chore: remove ci for ubuntu 20.04
+  * chore: update boost to 1.74 (requiring ubuntu 22.04 minimum)
+  * fix: using in and seek for ffmpeg producer can result in incorrect
+    duration
+
+  [ Raivis Rengelis ]
+  * fix: race condition when destroying route_producer (#1552)
+
+  [ Jesper Ek ]
+  * fix: ffmpeg producer reject ndi://
+
+  [ Jean-Pierre Coetzee ]
+  * chore: Improve Dockerfile for non-docker applications (#1541)
+
+  [ Julian Waller ]
+  * fix: build failing when doxygen is installed
+  * fix: decklink subregion vertical height limit on mixed formats #1538
+  * chore: clang-format
+  * fix: dismiss cmake policy warning
+  * chore: add ubuntu 24 to test build matrix
+  * fix: decklink subregion vertical offset #1538
+  * fix: ensure frame has video before checking colorspace #1528
+  * Merge pull request #1528 from niklaspandersson/16bit
+  * Merge branch 'master' into 16bit
+  * Revert "fix: replace tbbmalloc with os native implementations"
+  * fix: ensure decklink subregion copy doesn't copy beyond the height
+    of the frame #1538
+  * fix: remove check for `leveldown.node` in auto restart script #1534
+  * chore: build with vs2022
+
+  [ Niklas P Andersson ]
+  * [FIXUP] Move default decklink hdr colorspace to config
+  * [FIXUP] Add bt601 as possible colorspace to ffmpeg producer
+  * [FIXUP] Add bt601 as colorspace to decklink producer
+  * [FIXUP] Rename decklink producer param HDR to 10BIT
+  * [FIXUP] Add comments related to paths supporting hdr frames in
+    decklink consumer
+  * [FIXUP] Clean up create_array signature
+
+  [ Simon Liddicott ]
+  * Move cache-path under html in config example. (#1536)
+
+  [ Niklas Andersson ]
+  * Add config parameter for channel color-space
+
+  [ Niklas P Andersson ]
+  * Update decklink consumer HDR metadata
+  * Add correct color space metadata to frames from the ffmpeg producer
+  * Add correct color space metadata to frames from the decklink
+    producer
+  * Add color_space property to image_mixer
+  * Add support for bt.2020 in image kernel
+  * Add color_space property to pixel_format_desc
+  * Add uniforms for color matrix and luma coefficients
+  * Add support for higher color depth in decklink producer
+
+  [ Niklas Andersson ]
+  * Add support for higher color depth in decklink consumer
+  * Add support for higher color depths in ffmpeg producer
+  * Add support for color depth in ffmpeg consumer
+  * Expose color depth in config
+  * Make consumer factories aware of color depth
+
+  [ Niklas P Andersson ]
+  * Add support in ogl accelarator for higher color depths
+
+  [ Julian Waller ]
+  * feat: ADD SCREEN size and position parameters #1284
+  * chore: update readme
+  * chore: update version for 2.5 dev
+
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Fri, 25 Jul 2025 22:35:20 -0400
 
 server-2.4 (2.4.3-3) unstable; urgency=medium
 
