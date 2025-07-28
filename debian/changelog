@@ -1,3 +1,9 @@
+server-2.5 (2.5.0~pre1-2) unstable; urgency=medium
+
+  * d/control: explicit OpenGL dependency
+
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Sun, 27 Jul 2025 22:04:45 -0400
+
 server-2.5 (2.5.0~pre1-1) unstable; urgency=medium
 
   [ Dimitry Ishenko ]
