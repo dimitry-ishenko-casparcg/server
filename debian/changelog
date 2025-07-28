@@ -1,3 +1,9 @@
+server-2.5 (2.5.0~pre1-3) unstable; urgency=medium
+
+  * build-debian: fix CEF version
+
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Sun, 27 Jul 2025 22:36:52 -0400
+
 server-2.5 (2.5.0~pre1-2) unstable; urgency=medium
 
   * d/control: explicit OpenGL dependency
