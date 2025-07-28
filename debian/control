@@ -26,6 +26,7 @@ Build-Depends:
  libegl-dev,
  libglew-dev,
  libopenal-dev,
+ libopengl-dev,
  libpostproc-dev,
  libsfml-dev,
  libsimde-dev,
