@@ -20,13 +20,13 @@ jobs:
 
       - uses: robinraju/release-downloader@v1
         with:
-          repository: dimitry-ishenko-casparcg/chromium-embedded-117
+          repository: dimitry-ishenko-casparcg/chromium-embedded-131
           latest: true
-          fileName: libcef117{,-data,-dev}_*_amd64.deb
+          fileName: libcef131{,-data,-dev}_*_amd64.deb
 
       - run: |
           git config --global --add safe.directory '*'
-          apt-get -y install ./libcef117*_amd64.deb
+          apt-get -y install ./libcef131*_amd64.deb
           apt-get -y build-dep .
           dpkg-buildpackage --build=binary --no-sign
 
