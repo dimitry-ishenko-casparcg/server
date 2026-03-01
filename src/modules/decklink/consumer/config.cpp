@@ -24,13 +24,19 @@
 #include <common/param.h>
 #include <common/ptree.h>
 
+#ifdef WIN32
+#include <isa_availability.h>
+
+#define CHECK_INSTRUCTION_SUPPORT(a, v) (__check_arch_support((a), (v)) || __check_isa_support((a), (v)))
+#endif
+
 namespace caspar { namespace decklink {
 
 port_configuration parse_output_config(const boost::property_tree::wptree&  ptree,
                                        const core::video_format_repository& format_repository)
 {
     port_configuration port_config;
-    port_config.device_index = ptree.get(L"device", -1);
+    port_config.device_index = ptree.get(L"device", static_cast<int64_t>(-1));
     port_config.key_only     = ptree.get(L"key-only", port_config.key_only);
 
     auto format_desc_str = ptree.get(L"video-mode", L"");
@@ -97,6 +103,33 @@ configuration parse_xml_config(const boost::property_tree::wptree&  ptree,
     }
     config.wait_for_reference_duration = ptree.get(L"wait-for-reference-duration", config.wait_for_reference_duration);
 
+    {
+        auto is_8bit              = channel_info.depth == common::bit_depth::bit8;
+        auto default_pixel_format = is_8bit ? L"rgba" : L"yuv";
+        auto pixel_format         = ptree.get(L"pixel-format", default_pixel_format);
+        if (pixel_format == L"yuv") {
+            config.pixel_format = configuration::pixel_format_t::yuv;
+        } else if (pixel_format == L"rgba") {
+            config.pixel_format = configuration::pixel_format_t::rgba;
+        } else {
+            CASPAR_THROW_EXCEPTION(user_error() << msg_info(L"Invalid pixel format, must be rgba or yuv"));
+        }
+
+        if (channel_info.depth != common::bit_depth::bit8 &&
+            config.pixel_format == configuration::pixel_format_t::rgba) {
+            CASPAR_THROW_EXCEPTION(user_error()
+                                   << msg_info(L"The decklink consumer only supports rgba output on 8-bit channels"));
+        }
+
+#ifdef WIN32
+        if (!CHECK_INSTRUCTION_SUPPORT(__IA_SUPPORT_VECTOR256, 0) &&
+            config.pixel_format != configuration::pixel_format_t::rgba) {
+            CASPAR_THROW_EXCEPTION(user_error()
+                                   << msg_info(L"Your cpu does not support the features needed for yuv output"));
+        }
+#endif
+    }
+
     config.primary = parse_output_config(ptree, format_repository);
     if (config.primary.device_index == -1)
         config.primary.device_index = 1;
@@ -110,7 +143,7 @@ configuration parse_xml_config(const boost::property_tree::wptree&  ptree,
         config.keyer = configuration::keyer_t::external_keyer;
 
         auto key_config         = config.primary; // Copy the primary config
-        key_config.device_index = ptree.get(L"key-device", 0);
+        key_config.device_index = ptree.get(L"key-device", static_cast<int64_t>(0));
         if (key_config.device_index == 0) {
             key_config.device_index = config.primary.device_index + 1;
         }
@@ -132,7 +165,7 @@ configuration parse_xml_config(const boost::property_tree::wptree&  ptree,
     }
 
     config.color_space   = channel_info.default_color_space;
-    auto color_space_str = ptree.get(L"color-space", L"bt709");
+    auto color_space_str = ptree.get(L"color-space", L"");
     if (!color_space_str.empty())
         config.color_space = get_color_space(color_space_str);
 
@@ -154,7 +187,7 @@ configuration parse_amcp_config(const std::vector<std::wstring>&     params,
     configuration config;
 
     if (params.size() > 1)
-        config.primary.device_index = std::stoi(params.at(1));
+        config.primary.device_index = std::stoll(params.at(1));
 
     if (contains_param(L"INTERNAL_KEY", params)) {
         config.keyer = configuration::keyer_t::internal_keyer;

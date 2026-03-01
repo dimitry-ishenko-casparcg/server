@@ -32,6 +32,7 @@
 #include <core/producer/cg_proxy.h>
 
 #include <boost/asio.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/range/algorithm/remove_if.hpp>
@@ -172,7 +173,8 @@ class renderer_application
             auto default_backend = L"gl";
 #if __unix__
             // If there is no X server, Chromium requires us to force it to the angle backend
-            if (getenv("DISPLAY") == nullptr) default_backend = L"vulkan";
+            if (getenv("DISPLAY") == nullptr)
+                default_backend = L"vulkan";
 #endif
 
             // This gives better performance on the gpu->cpu readback, but can perform worse with intense templates
@@ -225,7 +227,7 @@ void init(const core::module_dependencies& dependencies)
 
     CefMainArgs main_args;
     g_cef_executor = std::make_unique<executor>(L"cef");
-    g_cef_executor->invoke([&] {
+    bool result    = g_cef_executor->invoke([&] {
 #ifdef WIN32
         SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
 #endif
@@ -237,13 +239,23 @@ void init(const core::module_dependencies& dependencies)
         settings.remote_debugging_port        = env::properties().get(L"configuration.html.remote-debugging-port", 0);
         settings.windowless_rendering_enabled = true;
 
-        auto cache_path = env::properties().get(L"configuration.html.cache-path", L"");
+        auto cache_path = env::properties().get(L"configuration.html.cache-path", L"cef-cache");
         if (!cache_path.empty()) {
+            if (!boost::filesystem::path(cache_path).is_absolute()) {
+                cache_path = caspar::env::initial_folder() + L"/" + cache_path;
+            }
+            CASPAR_LOG(info) << L"[html] Using CEF cache path: " << cache_path;
             CefString(&settings.cache_path).FromWString(cache_path);
         }
 
-        CefInitialize(main_args, settings, CefRefPtr<CefApp>(new renderer_application(enable_gpu)), nullptr);
+        return CefInitialize(main_args, settings, CefRefPtr<CefApp>(new renderer_application(enable_gpu)), nullptr);
     });
+
+    if (!result) {
+        CASPAR_LOG(error) << "[html] Failed to initialize CEF";
+        return;
+    }
+
     g_cef_executor->begin_invoke([&] { CefRunMessageLoop(); });
     dependencies.cg_registry->register_cg_producer(
         L"html",
@@ -253,13 +265,6 @@ void init(const core::module_dependencies& dependencies)
             return html::create_cg_producer(dependencies, {filename});
         },
         false);
-
-    auto cef_version_major = std::to_wstring(cef_version_info(0));
-    auto cef_revision      = std::to_wstring(cef_version_info(1));
-    auto chrome_major      = std::to_wstring(cef_version_info(2));
-    auto chrome_minor      = std::to_wstring(cef_version_info(3));
-    auto chrome_build      = std::to_wstring(cef_version_info(4));
-    auto chrome_patch      = std::to_wstring(cef_version_info(5));
 }
 
 void uninit()

@@ -64,7 +64,6 @@ extern "C" {
 #include <libavutil/opt.h>
 #include <libavutil/pixfmt.h>
 #include <libavutil/samplefmt.h>
-#include <libswscale/swscale.h>
 }
 #ifdef _MSC_VER
 #pragma warning(pop)
@@ -93,10 +92,6 @@ struct Stream
 
     std::shared_ptr<AVCodecContext> enc = nullptr;
     AVStream*                       st  = nullptr;
-
-    tbb::concurrent_bounded_queue<std::shared_ptr<SwsContext>> sws_;
-
-    int64_t pts = 0;
 
     Stream(AVFormatContext*                    oc,
            std::string                         suffix,
@@ -182,7 +177,7 @@ struct Stream
                 const auto sar = boost::rational<int>(format_desc.square_width, format_desc.square_height) /
                                  boost::rational<int>(format_desc.width, format_desc.height);
 
-                const auto pix_fmt = (depth == common::bit_depth::bit8) ? AV_PIX_FMT_YUVA422P : AV_PIX_FMT_YUVA422P10;
+                const auto pix_fmt = (depth == common::bit_depth::bit8) ? AV_PIX_FMT_BGRA : AV_PIX_FMT_BGRA64LE;
 
                 auto args = (boost::format("video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:sar=%d/%d:frame_rate=%d/%d") %
                              format_desc.width % format_desc.height % pix_fmt % format_desc.duration %
@@ -340,103 +335,28 @@ struct Stream
         }
     }
 
-    std::shared_ptr<SwsContext> get_sws(int width, int height)
-    {
-        std::shared_ptr<SwsContext> sws;
-
-        if (sws_.try_pop(sws)) {
-            return sws;
-        }
-
-        sws.reset(sws_getContext(
-                      width, height, AV_PIX_FMT_BGRA, width, height, AV_PIX_FMT_YUVA422P, 0, nullptr, nullptr, nullptr),
-                  [](SwsContext* ptr) { sws_freeContext(ptr); });
-
-        if (!sws) {
-            CASPAR_THROW_EXCEPTION(caspar_exception());
-        }
-
-        int        brigthness;
-        int        contrast;
-        int        saturation;
-        int        in_full;
-        int        out_full;
-        const int* inv_table;
-        const int* table;
-
-        sws_getColorspaceDetails(
-            sws.get(), (int**)&inv_table, &in_full, (int**)&table, &out_full, &brigthness, &contrast, &saturation);
-
-        inv_table = sws_getCoefficients(AVCOL_SPC_RGB);
-        table     = sws_getCoefficients(AVCOL_SPC_BT709);
-
-        in_full  = AVCOL_RANGE_JPEG;
-        out_full = AVCOL_RANGE_MPEG;
-
-        sws_setColorspaceDetails(sws.get(), inv_table, in_full, table, out_full, brigthness, contrast, saturation);
-
-        return std::shared_ptr<SwsContext>(sws.get(), [this, sws](SwsContext*) { sws_.push(sws); });
-    }
-
-    void send(core::const_frame&                             in_frame,
+    void send(std::tuple<core::const_frame, std::int64_t, std::int64_t>&    data,
               const core::video_format_desc&                 format_desc,
               std::function<void(std::shared_ptr<AVPacket>)> cb)
     {
         std::shared_ptr<AVFrame>  frame;
         std::shared_ptr<AVPacket> pkt;
 
+        const auto [in_frame, video_pts, audio_pts] = data;
+
         if (in_frame) {
             if (enc->codec_type == AVMEDIA_TYPE_VIDEO) {
                 frame = make_av_video_frame(in_frame, format_desc);
-
-                {
-                    auto frame2                 = alloc_frame();
-                    frame2->sample_aspect_ratio = frame->sample_aspect_ratio;
-                    frame2->width               = frame->width;
-                    frame2->height              = frame->height;
-                    frame2->format              = AV_PIX_FMT_YUVA422P;
-                    frame2->colorspace          = AVCOL_SPC_BT709;
-                    frame2->color_primaries     = AVCOL_PRI_BT709;
-                    frame2->color_range         = AVCOL_RANGE_MPEG;
-                    frame2->color_trc           = AVCOL_TRC_BT709;
-                    av_frame_get_buffer(frame2.get(), 64);
-
-                    int h = frame->height / 8;
-                    tbb::parallel_for(0, 8, [&](int i) {
-                        auto sws = get_sws(frame->width, h);
-
-                        uint8_t* src[4] = {};
-                        src[0]          = frame->data[0] + frame->linesize[0] * (i * h);
-
-                        uint8_t* dst[4] = {};
-                        dst[0]          = frame2->data[0] + frame2->linesize[0] * (i * h);
-                        dst[1]          = frame2->data[1] + frame2->linesize[1] * (i * h);
-                        dst[2]          = frame2->data[2] + frame2->linesize[2] * (i * h);
-                        dst[3]          = frame2->data[3] + frame2->linesize[3] * (i * h);
-
-                        sws_scale(sws.get(), src, frame->linesize, 0, h, dst, frame2->linesize);
-                    });
-
-                    int i = frame->height - h;
-                    if (i > 0) {
-                        // TODO
-                    }
-
-                    frame = std::move(frame2);
-                }
-
-                frame->pts = pts;
-                pts += 1;
+                frame->pts = video_pts;
             } else if (enc->codec_type == AVMEDIA_TYPE_AUDIO) {
                 frame      = make_av_audio_frame(in_frame, format_desc);
-                frame->pts = pts;
-                pts += frame->nb_samples;
+                frame->pts = audio_pts;
             } else {
                 // TODO
             }
             FF(av_buffersrc_write_frame(source, frame.get()));
         } else {
-            FF(av_buffersrc_close(source, pts, 0));
+            FF(av_buffersrc_close(source, AV_NOPTS_VALUE, 0));
         }
 
         while (true) {
@@ -474,6 +394,8 @@ struct ffmpeg_consumer : public core::frame_consumer
     int                     channel_index_ = -1;
     core::video_format_desc format_desc_;
     bool                    realtime_ = false;
+    std::int64_t            video_pts = 0;
+    std::int64_t            audio_pts = 0;
 
     spl::shared_ptr<diagnostics::graph> graph_;
 
@@ -483,7 +405,7 @@ struct ffmpeg_consumer : public core::frame_consumer
     std::exception_ptr exception_;
     std::mutex         exception_mutex_;
 
-    tbb::concurrent_bounded_queue<core::const_frame> frame_buffer_;
+    tbb::concurrent_bounded_queue<std::tuple<core::const_frame, std::int64_t, std::int64_t> > frame_buffer_;
     std::thread                                      frame_thread_;
 
     common::bit_depth depth_;
@@ -513,7 +435,7 @@ struct ffmpeg_consumer : public core::frame_consumer
     ~ffmpeg_consumer()
     {
         if (frame_thread_.joinable()) {
-            frame_buffer_.push(core::const_frame{});
+            frame_buffer_.push({ core::const_frame{}, -1, -1 });
             frame_thread_.join();
         }
     }
@@ -665,15 +587,15 @@ struct ffmpeg_consumer : public core::frame_consumer
 
                 auto packet_cb = [&](std::shared_ptr<AVPacket>&& pkt) { packet_buffer.push(std::move(pkt)); };
 
-                std::int32_t frame_number = 0;
+                std::int64_t frame_number = 0;
                 while (true) {
                     {
                         std::lock_guard<std::mutex> lock(state_mutex_);
                         state_["file/frame"] = frame_number++;
                     }
 
-                    core::const_frame frame;
-                    frame_buffer_.pop(frame);
+                    std::tuple<core::const_frame, std::int64_t, std::int64_t> data;
+                    frame_buffer_.pop(data);
                     graph_->set_value("input",
                                       static_cast<double>(frame_buffer_.size() + 0.001) / frame_buffer_.capacity());
 
@@ -681,17 +603,17 @@ struct ffmpeg_consumer : public core::frame_consumer
                     tbb::parallel_invoke(
                         [&] {
                             if (video_stream) {
-                                video_stream->send(frame, format_desc, packet_cb);
+                                video_stream->send(data, format_desc, packet_cb);
                             }
                         },
                         [&] {
                             if (audio_stream) {
-                                audio_stream->send(frame, format_desc, packet_cb);
+                                audio_stream->send(data, format_desc, packet_cb);
                             }
                         });
                     graph_->set_value("frame-time", frame_timer.elapsed() * format_desc.fps * 0.5);
 
-                    if (!frame) {
+                    if (!std::get<0>(data)) {
                         packet_buffer.push(nullptr);
                         break;
                     }
@@ -716,9 +638,13 @@ struct ffmpeg_consumer : public core::frame_consumer
             }
         }
 
-        if (!frame_buffer_.try_push(frame)) {
+        if (!frame_buffer_.try_push({ frame, video_pts, audio_pts })) {
             graph_->set_tag(diagnostics::tag_severity::WARNING, "dropped-frame");
         }
+
+        video_pts += 1;
+        audio_pts += frame.audio_data().size() / format_desc_.audio_channels;
+
         graph_->set_value("input", static_cast<double>(frame_buffer_.size() + 0.001) / frame_buffer_.capacity());
 
         return make_ready_future(true);
