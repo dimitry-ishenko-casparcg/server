@@ -8,10 +8,6 @@ Copyright:
  2010-2018, Sveriges Television AB <info@casparcg.com>
 License: GPL-3+
 
-Files: debian/*
-Copyright: 2024-2025, Dimitry Ishenko <dimitry.ishenko@gmail.com>
-License: GPL-3+
-
 Files: src/CMakeModules/FindFFmpeg.cmake
 Copyright:
  2008, Alexander Neundorf <neundorf@kde.org>
@@ -52,3 +48,7 @@ Copyright:
  2010, Google Corporation
  2012, Red Hat, Inc
 License: OFL-1.1
+
+Files: debian/*
+Copyright: 2024-2026, Dimitry Ishenko <dimitry.ishenko@gmail.com>
+License: GPL-3+
