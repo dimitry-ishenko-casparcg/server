@@ -1,3 +1,64 @@
+server-2.5 (2.5.0-1) unstable; urgency=medium
+
+  [ Dimitry Ishenko ]
+  * d/patches: update html patch
+  * d/patches: update CEF deps
+  * d/control: update deps
+  * d/copyright: update
+  * Merge tag 'v2.5.0-stable' into debian
+  * Restore upstream workflow
+
+  [ Julian Waller ]
+  * v2.5.0-stable
+  * chore: fix typo
+  * fix: excessive decklink Input format changed
+  * chore: upload builds from v2.5.x branch
+  * chore: update changelog
+  * chore: fix linux compile error
+  * fix: check for avx2 support before allowing decklink yuv output
+  * fix: windows compiler error/warnings
+  * fix: build windows without avx2
+  * feat: allow selecting decklink device by persistent id
+  * feat: cef 142
+  * chore: update changelog
+  * fix: set default cef-cache path, and allow relative paths to be
+    specified
+  * chore: update scanner usage docs #1647
+  * fix: layer flips don't render image #1679
+  * fix: decklink v210 crash
+  * fix: zlib linking with msvc2022 #1636
+  * fix: update onetbb on windows
+  * chore: update windows support in readme
+  * chore: update changelog
+
+  [ Thomas Kaltz III ]
+  * feat: additional transition behaviours. Ramp audio fades across a
+    frame (#1622)
+
+  [ Niklas P Andersson ]
+  * feat: use gpu texture in screen consumer (#1651)
+  * feat: route audio from CEF (#1590)
+  * feat(ffmpeg): Enable alpha for webm videos (#1678)
+  * feat: decklink support for chosing yuv output i 8-bit mode (#1652)
+  * feat(decklink): Use v210 in high bitdepth color path (#1573)
+  * feat: screen consumer support for 16bit (#1640)
+
+  [ Toon Toetenel ]
+  * fix: allow running docker image headless (#1675)
+
+  [ Jesper Ek ]
+  * fix: ffmpeg consumer pts on frame-drop (#1667)
+  * fix: html_producer log page load errors (#1672)
+  * fix: remove unnecessary sws scale forcing conversion to YUVA422
+    (#1668)
+  * fix: leave thread_type to any (#1669)
+  * fix: exit gracefully on SIGINT and SIGTERM (#1666)
+
+  [ Matthias Nagel ]
+  * fix: support for Boost 1.88 (#1655)
+
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Sun, 01 Mar 2026 21:01:24 -0500
+
 server-2.5 (2.5.0~pre1-3) unstable; urgency=medium
 
   * build-debian: fix CEF version
