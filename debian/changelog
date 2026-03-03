@@ -1,3 +1,10 @@
+server-2.5 (2.5.0-2) unstable; urgency=medium
+
+  * Backport patches
+  * d/rules: sort
+
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Mon, 02 Mar 2026 23:02:25 -0500
+
 server-2.5 (2.5.0-1) unstable; urgency=medium
 
   [ Dimitry Ishenko ]
