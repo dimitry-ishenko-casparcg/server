@@ -1,0 +1,15 @@
+From: Dimitry Ishenko <dimitry.ishenko@gmail.com>
+Date: Mar, 03 2026 20:15:25 -0500
+Subject: [PATCH] Fix for non-AVX2 platforms
+
+--- server-2.5-2.5.0.orig/src/CMakeModules/Bootstrap_Linux.cmake
++++ server-2.5-2.5.0/src/CMakeModules/Bootstrap_Linux.cmake
+@@ -124,6 +124,8 @@ IF (CMAKE_SYSTEM_PROCESSOR MATCHES "(i[3
+     IF (ENABLE_AVX2)
+         ADD_COMPILE_OPTIONS (-mavx)
+         ADD_COMPILE_OPTIONS (-mavx2)
++    ELSE()
++        ADD_COMPILE_OPTIONS (-Wno-psabi)
+     ENDIF ()
+ ENDIF ()
+ 
