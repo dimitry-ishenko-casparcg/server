@@ -27,7 +27,7 @@ Build-Depends:
  libglew-dev,
  libopenal-dev,
  libopengl-dev,
- libsfml-dev,
+ libsfml-dev (< 3.0.0),
  libsimde-dev,
  libswresample-dev,
  libswscale-dev,
