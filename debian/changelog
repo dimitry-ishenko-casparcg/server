@@ -1,3 +1,10 @@
+server-2.5 (2.5.0-4) unstable; urgency=medium
+
+  * d/control: deprecated warning
+  * d/patches: fix for non-AVX2 platforms
+
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Tue, 03 Mar 2026 15:48:28 -0500
+
 server-2.5 (2.5.0-3) unstable; urgency=medium
 
   * d/rules: disable AVX2
