@@ -8,4 +8,5 @@ SERVER_NAME := casparcg-server-$(shell dpkg-parsechangelog -SVersion | cut -d. -
 
 override_dh_auto_configure:
 	dh_auto_configure -- -DCASPARCG_BINARY_NAME=$(SERVER_NAME) \
-		-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DUSE_STATIC_BOOST=OFF -DUSE_SYSTEM_CEF=ON
+		-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON \
+		-DENABLE_AVX2=OFF -DUSE_STATIC_BOOST=OFF -DUSE_SYSTEM_CEF=ON
