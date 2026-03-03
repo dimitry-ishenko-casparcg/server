@@ -1,2 +1,4 @@
 0001-Use-system-provided-CEF-package.patch
 0002-Fix-html-module-linking.patch
+0003-fix-Add-missing-cstdint-include-1697.patch
+0004-Remove-dependency-on-libpostproc.patch
