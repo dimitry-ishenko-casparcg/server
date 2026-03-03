@@ -1,3 +1,10 @@
+server-2.5 (2.5.0-3) unstable; urgency=medium
+
+  * d/rules: disable AVX2
+  * d/control: SFML 3 is not supported
+
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Tue, 03 Mar 2026 14:01:00 -0500
+
 server-2.5 (2.5.0-2) unstable; urgency=medium
 
   * Backport patches
