@@ -50,17 +50,8 @@
 #pragma GCC diagnostic pop
 #endif
 
-#pragma warning(push)
-#pragma warning(disable : 4244)
-#pragma warning(disable : 4245)
-#pragma warning(disable : 4701)
 #include <boost/crc.hpp>
-#pragma warning(pop)
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4244)
-#endif
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavfilter/avfilter.h>
@@ -72,9 +63,6 @@ extern "C" {
 #include <libavutil/pixfmt.h>
 #include <libavutil/samplefmt.h>
 }
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 #include <tbb/concurrent_queue.h>
 #include <tbb/parallel_for.h>
@@ -216,10 +204,6 @@ struct Stream
         if (codec->type == AVMEDIA_TYPE_VIDEO) {
             sink = FFMEM(avfilter_graph_alloc_filter(graph.get(), avfilter_get_by_name("buffersink"), "out"));
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4245)
-#endif
             // TODO codec->profiles
             // TODO FF(av_opt_set_int_list(sink, "framerates", codec->supported_framerates, { 0, 0 },
             // AV_OPT_SEARCH_CHILDREN));
@@ -239,15 +223,8 @@ struct Stream
             FF(av_opt_set_int_list(sink, "pix_fmts", codec->pix_fmts, -1, AV_OPT_SEARCH_CHILDREN));
 #endif
 
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
         } else if (codec->type == AVMEDIA_TYPE_AUDIO) {
             sink = FFMEM(avfilter_graph_alloc_filter(graph.get(), avfilter_get_by_name("abuffersink"), "out"));
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4245)
-#endif
             // TODO codec->profiles
 
 #if LIBAVUTIL_VERSION_MAJOR >= 60 // FFmpeg 8
@@ -284,9 +261,6 @@ struct Stream
             // TODO: need to translate codec->ch_layouts into something that can be passed via av_opt_set_*
             // FF(av_opt_set_chlayout(sink, "ch_layouts", codec->ch_layouts, AV_OPT_SEARCH_CHILDREN));
 
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
         } else {
             CASPAR_THROW_EXCEPTION(ffmpeg_error_t()
                                    << boost::errinfo_errno(EINVAL) << msg_info_t("invalid output media type"));

@@ -39,10 +39,6 @@
 
 #include <common/diagnostics/graph.h>
 
-#if defined(_MSC_VER)
-#pragma warning(push, 1) // TODO: Legacy code, just disable warnings
-#endif
-
 namespace caspar { namespace protocol { namespace amcp {
 
 using IO::ClientInfoPtr;

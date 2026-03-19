@@ -21,10 +21,6 @@
 
 #include "../StdAfx.h"
 
-#if defined(_MSC_VER)
-#pragma warning(push, 1) // TODO: Legacy code, just disable warnings
-#endif
-
 #include "AMCPCommandsImpl.h"
 
 #include "../util/http_request.h"
@@ -1412,7 +1408,7 @@ std::wstring channel_grid_command(command_context& ctx)
     auto& self  = ctx.channels->back();
 
     core::diagnostics::scoped_call_context save;
-    core::diagnostics::call_context::for_thread().video_channel = ctx.channels->size();
+    core::diagnostics::call_context::for_thread().video_channel = static_cast<int>(ctx.channels->size());
 
     std::vector<std::wstring> params;
     params.emplace_back(L"SCREEN");

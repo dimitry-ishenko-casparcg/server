@@ -40,11 +40,8 @@
 #include <memory>
 #include <utility>
 
-#pragma warning(push)
-#pragma warning(disable : 4458)
 #include <include/cef_app.h>
 #include <include/cef_version.h>
-#pragma warning(pop)
 
 #ifdef WIN32
 #include <accelerator/d3d/d3d_device.h>
