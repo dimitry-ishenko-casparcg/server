@@ -24,6 +24,7 @@ Build-Depends:
  libcef142-dev,
  libegl-dev,
  libglew-dev,
+ libicu-dev,
  libopenal-dev,
  libopengl-dev,
  libsfml-dev,
