@@ -20,7 +20,6 @@ Build-Depends:
  libboost-locale-dev (>= 1.74.0),
  libboost-log-dev (>= 1.74.0),
  libboost-regex-dev (>= 1.74.0),
- libboost-system-dev (>= 1.74.0),
  libboost-thread-dev (>= 1.74.0),
  libcef142-dev,
  libegl-dev,
