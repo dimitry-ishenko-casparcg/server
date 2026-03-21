@@ -45,6 +45,7 @@ Depends:
  ${shlibs:Depends},
  ${misc:Depends},
  libcef142,
+ libcef142-data,
  sensible-utils,
  x11-utils,
 Description: CasparCG Server
