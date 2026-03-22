@@ -15,7 +15,7 @@ set(ENABLE_HTML ON CACHE BOOL "Enable CEF and HTML producer")
 set(USE_STATIC_BOOST OFF CACHE BOOL "Use shared library version of Boost")
 set(USE_SYSTEM_CEF ON CACHE BOOL "Use the version of cef from your OS (only tested with Ubuntu)")
 set(CASPARCG_BINARY_NAME "casparcg" CACHE STRING "Custom name of the binary to build (this disables some install files)")
-set(ENABLE_AVX2 ON CACHE BOOL "Enable the AVX2 instruction set (requires a CPU that supports it)")
+set(ENABLE_AVX2 OFF CACHE BOOL "Enable the AVX2 instruction set (requires a CPU that supports it)")
 
 # Determine build (target) platform
 SET (PLATFORM_FOLDER_NAME "linux")
@@ -30,13 +30,16 @@ MARK_AS_ADVANCED (CMAKE_INSTALL_PREFIX)
 if (USE_STATIC_BOOST)
 	SET (Boost_USE_STATIC_LIBS ON)
 endif()
-find_package(Boost 1.74.0 COMPONENTS system thread filesystem log_setup log locale regex date_time coroutine REQUIRED)
+find_package(Boost 1.74.0 COMPONENTS thread filesystem log_setup log locale regex date_time coroutine REQUIRED)
 find_package(FFmpeg REQUIRED)
 find_package(OpenGL REQUIRED COMPONENTS OpenGL GLX EGL)
 find_package(GLEW REQUIRED)
 find_package(TBB REQUIRED)
 find_package(OpenAL REQUIRED)
-find_package(SFML 2 COMPONENTS graphics window REQUIRED)
+find_package(SFML 3 COMPONENTS Graphics System Window QUIET)
+if(NOT SFML_FOUND)
+    find_package(SFML 2 COMPONENTS graphics system window REQUIRED)
+endif()
 find_package(X11 REQUIRED)
 
 # support for Ubuntu 22.04
@@ -134,11 +137,12 @@ IF (CMAKE_SYSTEM_PROCESSOR MATCHES "(i[3-6]86|x64|x86_64|amd64|e2k)")
         ADD_COMPILE_OPTIONS (-mavx)
         ADD_COMPILE_OPTIONS (-mavx2)
     ENDIF ()
+ELSE ()
+    ADD_COMPILE_DEFINITIONS (USE_SIMDE) # Enable OpenMP support in simde
+    ADD_COMPILE_DEFINITIONS (SIMDE_ENABLE_OPENMP) # Enable OpenMP support in simde
+    ADD_COMPILE_OPTIONS (-fopenmp-simd) # Enable OpenMP SIMD support
 ENDIF ()
 
-ADD_COMPILE_DEFINITIONS (USE_SIMDE) # Enable OpenMP support in simde
-ADD_COMPILE_DEFINITIONS (SIMDE_ENABLE_OPENMP) # Enable OpenMP support in simde
-ADD_COMPILE_OPTIONS (-fopenmp-simd) # Enable OpenMP SIMD support
 ADD_COMPILE_OPTIONS (-fnon-call-exceptions) # Allow signal handler to throw exception
 
 ADD_COMPILE_OPTIONS (-Wno-deprecated-declarations -Wno-write-strings -Wno-multichar -Wno-cpp -Werror)
