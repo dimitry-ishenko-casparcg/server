@@ -1,3 +1,46 @@
+server-2.5 (2.5.1~rc1-1) unstable; urgency=medium
+
+  [ Dimitry Ishenko ]
+  * d/control: depend on libicu-dev
+  * d/patches: remove upstreamed patches
+  * d/control: libcef142-data is required
+  * d/control: SFML 3 is now supported
+  * d/control: boost-system is not used
+  * Merge tag 'v2.5.1-rc1' into debian
+  * screen: add configurable delay
+  * oal: use timespan
+  * feat: Add timespan class
+  * oal: simplify device name requirements
+  * oal: remove explicit casts required by MSVC
+  * oal: make diagnostics great again
+  * oal: properly handle multiple devices
+  * oal: create shared device and context
+  * oal: add configurable delay
+  * oal: sync video to audio
+  * oal: fix & clean up device detection
+  * oal: support multiple devices
+  * chore: clean up pragma warnings
+
+  [ Julian Waller ]
+  * fix: remove build dependency on boost_system
+  * chore: fix linux arm64 build
+  * chore: fix windows build
+  * fix: remove avx2 requirement for linux
+  * fix: avoid holding ic_mutex while error handling av_read_frame
+  * fix: gracefully handle transient ENOMEM errors from ffmpeg
+  * fix: recreate decklink producer filters when av-sync drifts to try
+    to preserve sync
+
+  [ Dimo ]
+  * feat: support FFmpeg 8 (#1715)
+  * fix: support SFML 3 on Linux (#1712)
+  * fix: Remove dependency on libpostproc (#1709)
+
+  [ Long Nguyen ]
+  * fix: Add missing `cstdint` include (#1697)
+
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Sun, 22 Mar 2026 10:35:35 -0400
+
 server-2.5 (2.5.0-5) unstable; urgency=medium
 
   * Revert "d/rules: disable AVX2"
