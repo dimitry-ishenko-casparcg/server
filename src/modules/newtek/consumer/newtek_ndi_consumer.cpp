@@ -147,7 +147,7 @@ struct newtek_ndi_consumer : public core::frame_consumer
         graph_->set_text(print());
         // CASPAR_VERIFY(ndi_send_instance_);
 
-        send_thread = boost::thread([=]() {
+        send_thread = boost::thread([this]() {
             set_thread_realtime_priority();
             set_thread_name(L"NDI-SEND: " + name_);
             CASPAR_LOG(info) << L"Starting ndi-send thread for ndi output: " << name_;
@@ -213,7 +213,7 @@ struct newtek_ndi_consumer : public core::frame_consumer
 
     std::future<bool> send(core::video_field field, core::const_frame frame) override
     {
-        return executor_.begin_invoke([=] {
+        return executor_.begin_invoke([=, this] {
             graph_->set_value("tick-time", tick_timer_.elapsed() * format_desc_.fps * 0.5);
             tick_timer_.restart();
             {

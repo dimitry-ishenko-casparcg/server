@@ -35,7 +35,7 @@ Input::Input(const std::string& filename, std::shared_ptr<diagnostics::graph> gr
     graph_->set_color("input", diagnostics::color(0.7f, 0.4f, 0.4f));
 
     buffer_.set_capacity(256);
-    thread_ = boost::thread([=] {
+    thread_ = boost::thread([this] {
         try {
             set_thread_name(L"[ffmpeg::av_producer::Input]");
 
