@@ -246,7 +246,7 @@ struct device::impl : public std::enable_shared_from_this<impl>
     std::future<std::shared_ptr<texture>>
     copy_async(const array<const uint8_t>& source, int width, int height, int stride, common::bit_depth depth)
     {
-        return dispatch_async([=] {
+        return dispatch_async([=, this] {
             std::shared_ptr<buffer> buf;
 
             auto tmp = source.storage<std::shared_ptr<buffer>>();
@@ -267,7 +267,7 @@ struct device::impl : public std::enable_shared_from_this<impl>
 
     std::future<array<const uint8_t>> copy_async(const std::shared_ptr<texture>& source)
     {
-        return spawn_async([=](yield_context yield) {
+        return spawn_async([=, this](yield_context yield) {
             auto buf = create_buffer(source->size(), false);
             source->copy_to(*buf);
 
@@ -299,7 +299,7 @@ struct device::impl : public std::enable_shared_from_this<impl>
     std::future<std::shared_ptr<texture>>
     copy_async(GLuint source, int width, int height, int stride, common::bit_depth depth)
     {
-        return spawn_async([=](yield_context yield) {
+        return spawn_async([=, this](yield_context yield) {
             auto tex = create_texture(width, height, stride, depth, false);
 
             tex->copy_from(source);
@@ -415,7 +415,7 @@ struct device::impl : public std::enable_shared_from_this<impl>
 
     std::future<void> gc()
     {
-        return spawn_async([=](yield_context yield) {
+        return spawn_async([this](yield_context yield) {
             CASPAR_LOG(info) << " ogl: Running GC.";
 
             try {

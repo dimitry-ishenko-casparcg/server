@@ -98,9 +98,9 @@ class image_renderer
                 {array<const std::uint8_t>(buffer.data(), format_desc.size, true), nullptr});
         }
 
-        auto f = std::move(
-            ogl_->dispatch_async([=, layers = std::move(layers)]() mutable
-                                 -> std::tuple<std::future<array<const std::uint8_t>>, std::shared_ptr<core::texture>> {
+        auto f = std::move(ogl_->dispatch_async(
+            [this, format_desc, layers = std::move(layers)]() mutable
+                -> std::tuple<std::future<array<const std::uint8_t>>, std::shared_ptr<core::texture>> {
                 auto target_texture = ogl_->create_texture(format_desc.width, format_desc.height, 4, depth_);
                 draw(target_texture, std::move(layers), format_desc);
                 return {ogl_->copy_async(target_texture), target_texture};
@@ -383,7 +383,7 @@ struct image_mixer::impl
             d3d_texture->gen_gl_texture(ogl_);
 
         // copy directx texture to gl texture
-        auto gl_texture = ogl_->dispatch_sync([=] {
+        auto gl_texture = ogl_->dispatch_sync([this, d3d_texture, depth]() {
             return ogl_->copy_async(
                 d3d_texture->gl_texture_id(), d3d_texture->width(), d3d_texture->height(), 4, depth);
         });

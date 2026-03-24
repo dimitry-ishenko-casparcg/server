@@ -218,12 +218,16 @@ struct Stream
             // AV_OPT_SEARCH_CHILDREN));
 #if LIBAVUTIL_VERSION_MAJOR >= 60 // FFmpeg 8
             const void* pix_fmts;
-            int nb_pix_fmts = 0;
+            int         nb_pix_fmts = 0;
             FF(avcodec_get_supported_config(nullptr, codec, AV_CODEC_CONFIG_PIX_FORMAT, 0, &pix_fmts, &nb_pix_fmts));
 
-            FF(av_opt_set_array(sink, "pixel_formats", AV_OPT_SEARCH_CHILDREN | AV_OPT_ARRAY_REPLACE,
-                0, nb_pix_fmts, AV_OPT_TYPE_PIXEL_FMT, pix_fmts)
-            );
+            FF(av_opt_set_array(sink,
+                                "pixel_formats",
+                                AV_OPT_SEARCH_CHILDREN | AV_OPT_ARRAY_REPLACE,
+                                0,
+                                nb_pix_fmts,
+                                AV_OPT_TYPE_PIXEL_FMT,
+                                pix_fmts));
 #else
             FF(av_opt_set_int_list(sink, "pix_fmts", codec->pix_fmts, -1, AV_OPT_SEARCH_CHILDREN));
 #endif
@@ -241,20 +245,30 @@ struct Stream
 
 #if LIBAVUTIL_VERSION_MAJOR >= 60 // FFmpeg 8
             const void* sample_fmts;
-            int nb_sample_fmts = 0;
-            FF(avcodec_get_supported_config(nullptr, codec, AV_CODEC_CONFIG_SAMPLE_FORMAT, 0, &sample_fmts, &nb_sample_fmts));
+            int         nb_sample_fmts = 0;
+            FF(avcodec_get_supported_config(
+                nullptr, codec, AV_CODEC_CONFIG_SAMPLE_FORMAT, 0, &sample_fmts, &nb_sample_fmts));
 
-            FF(av_opt_set_array(sink, "sample_formats", AV_OPT_SEARCH_CHILDREN | AV_OPT_ARRAY_REPLACE,
-                0, nb_sample_fmts, AV_OPT_TYPE_SAMPLE_FMT, sample_fmts)
-            );
+            FF(av_opt_set_array(sink,
+                                "sample_formats",
+                                AV_OPT_SEARCH_CHILDREN | AV_OPT_ARRAY_REPLACE,
+                                0,
+                                nb_sample_fmts,
+                                AV_OPT_TYPE_SAMPLE_FMT,
+                                sample_fmts));
 
             const void* sample_rates;
-            int nb_sample_rates = 0;
-            FF(avcodec_get_supported_config(nullptr, codec, AV_CODEC_CONFIG_SAMPLE_RATE, 0, &sample_rates, &nb_sample_rates));
+            int         nb_sample_rates = 0;
+            FF(avcodec_get_supported_config(
+                nullptr, codec, AV_CODEC_CONFIG_SAMPLE_RATE, 0, &sample_rates, &nb_sample_rates));
 
-            FF(av_opt_set_array(sink, "samplerates", AV_OPT_SEARCH_CHILDREN | AV_OPT_ARRAY_REPLACE,
-                0, nb_sample_rates, AV_OPT_TYPE_INT, sample_rates)
-            );
+            FF(av_opt_set_array(sink,
+                                "samplerates",
+                                AV_OPT_SEARCH_CHILDREN | AV_OPT_ARRAY_REPLACE,
+                                0,
+                                nb_sample_rates,
+                                AV_OPT_TYPE_INT,
+                                sample_rates));
 #else
             FF(av_opt_set_int_list(sink, "sample_fmts", codec->sample_fmts, -1, AV_OPT_SEARCH_CHILDREN));
             FF(av_opt_set_int_list(sink, "sample_rates", codec->supported_samplerates, 0, AV_OPT_SEARCH_CHILDREN));
@@ -470,7 +484,7 @@ struct ffmpeg_consumer : public core::frame_consumer
 
         graph_->set_text(print());
 
-        frame_thread_ = std::thread([=] {
+        frame_thread_ = std::thread([=, this] {
             try {
                 std::map<std::string, std::string> options;
                 {

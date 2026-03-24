@@ -333,7 +333,7 @@ struct server::impl
 
         if (!disable_send_to_amcp_clients && primary_amcp_server_)
             primary_amcp_server_->add_client_lifecycle_object_factory(
-                [=](const std::string& ipv4_address) -> std::pair<std::wstring, std::shared_ptr<void>> {
+                [=, this](const std::string& ipv4_address) -> std::pair<std::wstring, std::shared_ptr<void>> {
                     using namespace boost::asio::ip;
 
                     return std::make_pair(std::wstring(L"osc_subscribe"),

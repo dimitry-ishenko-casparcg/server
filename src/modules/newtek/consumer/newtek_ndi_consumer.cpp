@@ -82,10 +82,15 @@ struct newtek_ndi_consumer : public core::frame_consumer
     executor                             executor_;
 
     std::unique_ptr<NDIlib_send_instance_t, std::function<void(NDIlib_send_instance_t*)>> ndi_send_instance_;
-    std::unique_ptr<NDIlib_send_advertiser_instance_t, std::function<void(NDIlib_send_advertiser_instance_t*)>> ndi_advertiser_instance_;
+    std::unique_ptr<NDIlib_send_advertiser_instance_t, std::function<void(NDIlib_send_advertiser_instance_t*)>>
+        ndi_advertiser_instance_;
 
   public:
-    newtek_ndi_consumer(std::wstring name, bool allow_fields, std::string discovery_server_url = "", bool use_advertiser = false, bool allow_monitoring = true)
+    newtek_ndi_consumer(std::wstring name,
+                        bool         allow_fields,
+                        std::string  discovery_server_url = "",
+                        bool         use_advertiser       = false,
+                        bool         allow_monitoring     = true)
         : name_(!name.empty() ? name : default_ndi_name())
         , instance_no_(instances_++)
         , frame_no_(0)
@@ -139,43 +144,41 @@ struct newtek_ndi_consumer : public core::frame_consumer
         // Create and configure NDI advertiser if enabled
         if (use_advertiser_) {
             if (!ndi_lib_->send_advertiser_create) {
-                CASPAR_LOG(warning) << L"NDI advertiser requested but not supported by this NDI SDK version (requires NDI 5.5+)";
+                CASPAR_LOG(warning)
+                    << L"NDI advertiser requested but not supported by this NDI SDK version (requires NDI 5.5+)";
             } else {
                 // Use constructor for proper initialization
                 NDIlib_send_advertiser_create_t advertiser_create_desc(
-                    discovery_server_url_.empty() ? nullptr : discovery_server_url_.c_str()
-                );
+                    discovery_server_url_.empty() ? nullptr : discovery_server_url_.c_str());
 
                 auto advertiser_instance = ndi_lib_->send_advertiser_create(&advertiser_create_desc);
 
                 if (!advertiser_instance) {
                     CASPAR_LOG(warning) << L"Failed to create NDI advertiser for sender '" << name_ << L"'"
-                                       << (discovery_server_url_.empty()
-                                           ? L" (using default discovery)"
-                                           : L" with server: " + u16(discovery_server_url_));
+                                        << (discovery_server_url_.empty()
+                                                ? L" (using default discovery)"
+                                                : L" with server: " + u16(discovery_server_url_));
                 } else {
                     ndi_advertiser_instance_ = {
-                        new NDIlib_send_advertiser_instance_t(advertiser_instance),
-                        [this](auto p) {
-                            if (p && *p && this->ndi_lib_->send_advertiser_del_sender && this->ndi_lib_->send_advertiser_destroy) {
+                        new NDIlib_send_advertiser_instance_t(advertiser_instance), [this](auto p) {
+                            if (p && *p && this->ndi_lib_->send_advertiser_del_sender &&
+                                this->ndi_lib_->send_advertiser_destroy) {
                                 // Remove sender before destroying advertiser
                                 this->ndi_lib_->send_advertiser_del_sender(*p, *ndi_send_instance_);
                                 this->ndi_lib_->send_advertiser_destroy(*p);
                             }
-                        }
-                    };
+                        }};
 
                     bool added = ndi_lib_->send_advertiser_add_sender(
-                        *ndi_advertiser_instance_,
-                        *ndi_send_instance_,
-                        allow_monitoring_
-                    );
+                        *ndi_advertiser_instance_, *ndi_send_instance_, allow_monitoring_);
 
                     if (added) {
                         CASPAR_LOG(info) << L"NDI sender '" << name_ << L"' registered with discovery server"
-                                         << (discovery_server_url_.empty() ? L"" : L" at " + u16(discovery_server_url_));
+                                         << (discovery_server_url_.empty() ? L""
+                                                                           : L" at " + u16(discovery_server_url_));
                     } else {
-                        CASPAR_LOG(warning) << L"Failed to register NDI sender '" << name_ << L"' with advertiser (sender may already be registered)";
+                        CASPAR_LOG(warning) << L"Failed to register NDI sender '" << name_
+                                            << L"' with advertiser (sender may already be registered)";
                     }
                 }
             }
@@ -205,7 +208,7 @@ struct newtek_ndi_consumer : public core::frame_consumer
         graph_->set_text(print());
         // CASPAR_VERIFY(ndi_send_instance_);
 
-        send_thread = boost::thread([=]() {
+        send_thread = boost::thread([this]() {
             set_thread_realtime_priority();
             set_thread_name(L"NDI-SEND: " + name_);
             CASPAR_LOG(info) << L"Starting ndi-send thread for ndi output: " << name_;
@@ -271,7 +274,7 @@ struct newtek_ndi_consumer : public core::frame_consumer
 
     std::future<bool> send(core::video_field field, core::const_frame frame) override
     {
-        return executor_.begin_invoke([=] {
+        return executor_.begin_invoke([=, this] {
             graph_->set_value("tick-time", tick_timer_.elapsed() * format_desc_.fps * 0.5);
             tick_timer_.restart();
             {
@@ -329,16 +332,17 @@ create_ndi_consumer(const std::vector<std::wstring>&                         par
     if (channel_info.depth != common::bit_depth::bit8)
         CASPAR_THROW_EXCEPTION(caspar_exception() << msg_info("Newtek NDI consumer only supports 8-bit color depth."));
 
-    std::wstring name                     = get_param(L"NAME", params, L"");
-    bool         allow_fields             = contains_param(L"ALLOW_FIELDS", params);
-    bool         use_advertiser           = contains_param(L"USE_ADVERTISER", params);
-    bool         allow_monitoring         = get_param(L"ALLOW_MONITORING", params, true);
-    std::wstring discovery_server_url_w   = get_param(L"DISCOVERY_SERVER", params, L"");
+    std::wstring name                   = get_param(L"NAME", params, L"");
+    bool         allow_fields           = contains_param(L"ALLOW_FIELDS", params);
+    bool         use_advertiser         = contains_param(L"USE_ADVERTISER", params);
+    bool         allow_monitoring       = get_param(L"ALLOW_MONITORING", params, true);
+    std::wstring discovery_server_url_w = get_param(L"DISCOVERY_SERVER", params, L"");
     if (discovery_server_url_w.empty())
         discovery_server_url_w = env::properties().get(L"configuration.ndi.discovery-server", L"");
-    std::string  discovery_server_url     = ndi::apply_default_discovery_port(u8(discovery_server_url_w));
+    std::string discovery_server_url = ndi::apply_default_discovery_port(u8(discovery_server_url_w));
 
-    return spl::make_shared<newtek_ndi_consumer>(name, allow_fields, discovery_server_url, use_advertiser, allow_monitoring);
+    return spl::make_shared<newtek_ndi_consumer>(
+        name, allow_fields, discovery_server_url, use_advertiser, allow_monitoring);
 }
 
 spl::shared_ptr<core::frame_consumer>
@@ -347,19 +351,20 @@ create_preconfigured_ndi_consumer(const boost::property_tree::wptree&           
                                   const std::vector<spl::shared_ptr<core::video_channel>>& channels,
                                   const core::channel_info&                                channel_info)
 {
-    auto        name                   = ptree.get(L"name", L"");
-    bool        allow_fields           = ptree.get(L"allow-fields", false);
-    bool        use_advertiser         = ptree.get(L"use-advertiser", false);
-    bool        allow_monitoring       = ptree.get(L"allow-monitoring", true);
+    auto         name                   = ptree.get(L"name", L"");
+    bool         allow_fields           = ptree.get(L"allow-fields", false);
+    bool         use_advertiser         = ptree.get(L"use-advertiser", false);
+    bool         allow_monitoring       = ptree.get(L"allow-monitoring", true);
     std::wstring discovery_server_url_w = ptree.get(L"discovery-server", L"");
     if (discovery_server_url_w.empty())
         discovery_server_url_w = env::properties().get(L"configuration.ndi.discovery-server", L"");
-    std::string discovery_server_url   = ndi::apply_default_discovery_port(u8(discovery_server_url_w));
+    std::string discovery_server_url = ndi::apply_default_discovery_port(u8(discovery_server_url_w));
 
     if (channel_info.depth != common::bit_depth::bit8)
         CASPAR_THROW_EXCEPTION(caspar_exception() << msg_info("Newtek NDI consumer only supports 8-bit color depth."));
 
-    return spl::make_shared<newtek_ndi_consumer>(name, allow_fields, discovery_server_url, use_advertiser, allow_monitoring);
+    return spl::make_shared<newtek_ndi_consumer>(
+        name, allow_fields, discovery_server_url, use_advertiser, allow_monitoring);
 }
 
 }} // namespace caspar::newtek

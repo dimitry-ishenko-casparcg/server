@@ -193,7 +193,7 @@ class html_client
 
     void reload()
     {
-        html::begin_invoke([=] {
+        html::begin_invoke([this] {
             if (browser_ != nullptr)
                 browser_->Reload();
         });
@@ -203,7 +203,7 @@ class html_client
     {
         closing_ = true;
 
-        html::invoke([=] {
+        html::invoke([this] {
             if (browser_ != nullptr) {
                 browser_->GetHost()->CloseBrowser(true);
             }
@@ -606,7 +606,7 @@ class html_client
 
     void do_execute_javascript(const std::wstring& javascript)
     {
-        html::begin_invoke([=] {
+        html::begin_invoke([this, javascript] {
             if (browser_ != nullptr)
                 browser_->GetMainFrame()->ExecuteJavaScript(
                     u8(javascript).c_str(), browser_->GetMainFrame()->GetURL(), 0);
