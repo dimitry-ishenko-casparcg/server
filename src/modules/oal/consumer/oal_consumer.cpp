@@ -127,14 +127,18 @@ class device
             CASPAR_THROW_EXCEPTION(not_supported() << msg_info("Device does not support ALC_EXT_thread_local_context"));
     }
 
+    inline static std::mutex mutex_;
     inline static std::map<std::string, std::weak_ptr<device>> devices_;
 
 public:
     static std::shared_ptr<device> open(const std::string& device_name)
     {
+        std::lock_guard guard{mutex_};
+
         auto& weak = devices_[device_name];
         auto shared = weak.lock();
         if (!shared) weak = shared = std::shared_ptr<device>{new device{device_name}};
+
         return shared;
     }
 
