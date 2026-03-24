@@ -30,14 +30,13 @@ struct impl_sfml : public device_context::impl
 
     impl_sfml()
 #if SFML_VERSION_MAJOR >= 3
-        : device_(sf::ContextSettings{
-              .depthBits         = 0,
-              .stencilBits       = 0,
-              .antiAliasingLevel = 0,
-              .majorVersion      = 4,
-              .minorVersion      = 5,
-              .attributeFlags    = sf::ContextSettings::Attribute::Core
-          }, {1, 1})
+        : device_(sf::ContextSettings{.depthBits         = 0,
+                                      .stencilBits       = 0,
+                                      .antiAliasingLevel = 0,
+                                      .majorVersion      = 4,
+                                      .minorVersion      = 5,
+                                      .attributeFlags    = sf::ContextSettings::Attribute::Core},
+                  {1, 1})
 #else
         : device_(sf::ContextSettings(0, 0, 0, 4, 5, sf::ContextSettings::Attribute::Core), 1, 1)
 #endif
