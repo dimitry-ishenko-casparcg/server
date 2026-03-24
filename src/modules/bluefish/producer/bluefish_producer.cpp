@@ -682,7 +682,7 @@ class bluefish_producer_proxy : public core::frame_producer
         , executor_(L"bluefish_producer[" + std::to_wstring(device_index) + L"]")
     {
         auto ctx = core::diagnostics::call_context::for_thread();
-        executor_.invoke([=] {
+        executor_.invoke([=, this] {
             core::diagnostics::call_context::for_thread() = ctx;
             producer_.reset(new bluefish_producer(
                 format_desc, device_index, stream_index, uhd_mode, frame_factory, format_repository));
@@ -691,7 +691,7 @@ class bluefish_producer_proxy : public core::frame_producer
 
     ~bluefish_producer_proxy()
     {
-        executor_.invoke([=] { producer_.reset(); });
+        executor_.invoke([=, this] { producer_.reset(); });
     }
 
     core::monitor::state state() const override { return producer_->state(); }
