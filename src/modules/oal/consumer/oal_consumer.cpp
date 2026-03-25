@@ -370,6 +370,8 @@ struct oal_consumer : public core::frame_consumer
     }
 };
 
+static constexpr auto old_config_path = L"configuration.system-audio.producer.default-device-name";
+
 spl::shared_ptr<core::frame_consumer> create_consumer(const std::vector<std::wstring>&     params,
                                                       const core::video_format_repository& format_repository,
                                                       const std::vector<spl::shared_ptr<core::video_channel>>& channels,
@@ -378,9 +380,11 @@ spl::shared_ptr<core::frame_consumer> create_consumer(const std::vector<std::wst
     if (params.empty() || !(boost::iequals(params.at(0), L"AUDIO") || boost::iequals(params.at(0), L"SYSTEM-AUDIO")))
         return core::frame_consumer::empty();
 
-    auto device_name = u8(get_param(L"DEVICE_NAME", params, L""));
-    auto s = u8(get_param(L"DELAY", params, L"0"));
-    return spl::make_shared<oal_consumer>(device_name, timespan{s});
+    auto old_name = env::properties().get(old_config_path, L"");
+
+    auto device_name = u8(get_param(L"DEVICE_NAME", params, old_name));
+    auto delay = u8(get_param(L"DELAY", params, L"0"));
+    return spl::make_shared<oal_consumer>(device_name, timespan{delay});
 }
 
 spl::shared_ptr<core::frame_consumer>
@@ -389,9 +393,11 @@ create_preconfigured_consumer(const boost::property_tree::wptree&               
                               const std::vector<spl::shared_ptr<core::video_channel>>& channels,
                               const core::channel_info&                                channel_info)
 {
-    auto device_name = u8(ptree.get(L"device-name", L""));
-    auto s = u8(ptree.get(L"delay", L"0"));
-    return spl::make_shared<oal_consumer>(device_name, timespan{s});
+    auto old_name = env::properties().get(old_config_path, L"");
+
+    auto device_name = u8(ptree.get(L"device-name", old_name));
+    auto delay = u8(ptree.get(L"delay", L"0"));
+    return spl::make_shared<oal_consumer>(device_name, timespan{delay});
 }
 
 } // namespace caspar::oal
