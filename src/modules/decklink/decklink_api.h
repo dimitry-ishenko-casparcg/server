@@ -43,8 +43,7 @@ using UINT32 = unsigned int;
 
 static std::wstring to_string(String bstr_string)
 {
-    std::wstring result = bstr_t(bstr_string, false);
-    return result;
+    return static_cast<const wchar_t*>(bstr_t(bstr_string, false));
 }
 
 static void com_initialize() { ::CoInitialize(nullptr); }
@@ -94,7 +93,7 @@ static com_ptr<IDeckLinkVideoFrameAncillaryPackets> create_ancillary_packets()
 template <typename I, typename T>
 static com_iface_ptr<I> iface_cast(const com_ptr<T>& ptr, bool optional = false)
 {
-    com_iface_ptr<I> result = ptr;
+    com_iface_ptr<I> result{ptr.p};
 
     if (!optional && !result)
         CASPAR_THROW_EXCEPTION(not_supported()
