@@ -52,12 +52,14 @@ extern "C" {
 }
 
 #include <atomic>
+#include <cctype>
 #include <condition_variable>
 #include <cstdint>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <queue>
+#include <ranges>
 #include <string>
 #include <thread>
 #include <vector>
@@ -101,22 +103,39 @@ class device
             device_name = name;
             CASPAR_LOG(info) << "Using default OpenAL device: " << device_name;
         }
+        else if (enum_devices) {
+            auto clean = [](const std::string& s) {
+                auto v = s | std::views::filter(::isgraph) | std::views::transform(::tolower);
+                return std::string{v.begin(), v.end()};
+            };
 
-        device_.reset(alcOpenDevice(device_name.data()));
-        if (!device_) {
-            CASPAR_LOG(info) << "-------- OpenAL Devices -------";
+            std::map<std::string, std::string> device_names;
 
             if (auto names = alcGetString(nullptr, enum_devices)) {
-                std::string name;
-                for (; *names; names += name.size() + 1) {
-                    name = names;
-                    CASPAR_LOG(info) << name;
+                while (*names) {
+                    std::string name = names;
+                    device_names[clean(name)] = name;
+
+                    names += name.size() + 1;
                 }
             }
-            CASPAR_LOG(info) << "-------- OpenAL Devices -------";
 
-            CASPAR_THROW_EXCEPTION(invalid_operation() << msg_info("Failed to initialize device."));
+            auto it = device_names.find(clean(device_name));
+            if (it == device_names.end()) {
+                CASPAR_LOG(info) << "-------- OpenAL Devices -------";
+                for (auto&& [_, name] : device_names) CASPAR_LOG(info) << name;
+                CASPAR_LOG(info) << "-------- OpenAL Devices -------";
+
+                CASPAR_THROW_EXCEPTION(invalid_operation() << msg_info("Invalid OpenAL device: " + device_name));
+            }
+            else {
+                device_name = it->second;
+                CASPAR_LOG(info) << "Using OpenAL device: " << device_name;
+            }
         }
+
+        device_.reset(alcOpenDevice(device_name.data()));
+        if (!device_) CASPAR_THROW_EXCEPTION(invalid_operation() << msg_info("Failed to initialize device."));
 
         context_.reset(alcCreateContext(device_.get(), nullptr));
         if (!context_) CASPAR_THROW_EXCEPTION(invalid_operation() << msg_info("Failed to create context."));
