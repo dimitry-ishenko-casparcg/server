@@ -1,3 +1,39 @@
+server-2.5 (2.5.1~rc2-1) unstable; urgency=medium
+
+  [ Dimitry Ishenko ]
+  * Merge tag 'v2.5.1-rc2' into debian
+  * Merge branch 'v2.5.x' into upstream
+  * oal: compat with older config
+  * oal: allow inexact device names
+  * oal: protect shared map with mutex
+  * screen: add configurable delay
+  * oal: use timespan
+  * feat: Add timespan class
+  * oal: simplify device name requirements
+  * oal: remove explicit casts
+  * oal: make diagnostics great again
+  * oal: properly handle multiple devices
+  * oal: create shared device and context
+  * oal: add configurable delay
+  * oal: sync video to audio
+  * oal: fix & clean up device detection
+  * oal: support multiple devices
+  * chore: C++20 is more strict
+  * chore: removed in C++20
+
+  [ Julian Waller ]
+  * feat: build with c++20
+  * chore: update actions/upload-artifact
+  * fix: windows needs postproc.dll still
+  * feat: cef shared texture (#1730)
+
+  [ dependabot[bot] ]
+  * chore(deps): bump robinraju/release-downloader from 1.10 to 1.12
+    (#1724)
+  * chore(deps): bump actions/checkout from 4 to 6 (#1726)
+
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Fri, 03 Apr 2026 19:08:37 -0400
+
 server-2.5 (2.5.1~rc1-1) unstable; urgency=medium
 
   [ Dimitry Ishenko ]
