@@ -41,6 +41,10 @@
 
 #include <tbb/concurrent_queue.h>
 
+#pragma warning(push)
+#pragma warning(disable : 4244)
+#pragma warning(disable : 4267)
+
 extern "C" {
 #define __STDC_CONSTANT_MACROS
 #define __STDC_LIMIT_MACROS
@@ -48,15 +52,16 @@ extern "C" {
 #include <libavutil/samplefmt.h>
 #include <libswresample/swresample.h>
 }
-#pragma warning(disable : 4267)
 
 #include <atomic>
+#include <cctype>
 #include <condition_variable>
 #include <cstdint>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <queue>
+#include <ranges>
 #include <string>
 #include <thread>
 #include <vector>
@@ -100,22 +105,39 @@ class device
             device_name = name;
             CASPAR_LOG(info) << "Using default OpenAL device: " << device_name;
         }
+        else if (enum_devices) {
+            auto clean = [](const std::string& s) {
+                auto v = s | std::views::filter(::isgraph) | std::views::transform(::tolower);
+                return std::string{v.begin(), v.end()};
+            };
 
-        device_.reset(alcOpenDevice(device_name.data()));
-        if (!device_) {
-            CASPAR_LOG(info) << "-------- OpenAL Devices -------";
+            std::map<std::string, std::string> device_names;
 
             if (auto names = alcGetString(nullptr, enum_devices)) {
-                std::string name;
-                for (; *names; names += name.size() + 1) {
-                    name = names;
-                    CASPAR_LOG(info) << name;
+                while (*names) {
+                    std::string name = names;
+                    device_names[clean(name)] = name;
+
+                    names += name.size() + 1;
                 }
             }
-            CASPAR_LOG(info) << "-------- OpenAL Devices -------";
 
-            CASPAR_THROW_EXCEPTION(invalid_operation() << msg_info("Failed to initialize device."));
+            auto it = device_names.find(clean(device_name));
+            if (it == device_names.end()) {
+                CASPAR_LOG(info) << "-------- OpenAL Devices -------";
+                for (auto&& [_, name] : device_names) CASPAR_LOG(info) << name;
+                CASPAR_LOG(info) << "-------- OpenAL Devices -------";
+
+                CASPAR_THROW_EXCEPTION(invalid_operation() << msg_info("Invalid OpenAL device: " + device_name));
+            }
+            else {
+                device_name = it->second;
+                CASPAR_LOG(info) << "Using OpenAL device: " << device_name;
+            }
         }
+
+        device_.reset(alcOpenDevice(device_name.data()));
+        if (!device_) CASPAR_THROW_EXCEPTION(invalid_operation() << msg_info("Failed to initialize device."));
 
         context_.reset(alcCreateContext(device_.get(), nullptr));
         if (!context_) CASPAR_THROW_EXCEPTION(invalid_operation() << msg_info("Failed to create context."));
@@ -124,14 +146,18 @@ class device
             CASPAR_THROW_EXCEPTION(not_supported() << msg_info("Device does not support ALC_EXT_thread_local_context"));
     }
 
+    inline static std::mutex mutex_;
     inline static std::map<std::string, std::weak_ptr<device>> devices_;
 
 public:
     static std::shared_ptr<device> open(const std::string& device_name)
     {
+        std::lock_guard guard{mutex_};
+
         auto& weak = devices_[device_name];
         auto shared = weak.lock();
         if (!shared) weak = shared = std::shared_ptr<device>{new device{device_name}};
+
         return shared;
     }
 
@@ -188,7 +214,7 @@ struct oal_consumer : public core::frame_consumer
         stop_ = true;
         free_cv_.notify_all();
 
-        executor_.invoke([=] {
+        executor_.invoke([this] {
             if (source_) {
                 std::lock_guard guard{mutex_};
                 device_->activate_context();
@@ -210,7 +236,7 @@ struct oal_consumer : public core::frame_consumer
         channel_index_ = channel_info.index;
         graph_->set_text(print());
 
-        executor_.begin_invoke([=] {
+        executor_.begin_invoke([this] {
             AVChannelLayout from, to;
             av_channel_layout_default(&from, format_desc_.audio_channels);
             av_channel_layout_default(&to, 2); // stereo
@@ -346,6 +372,8 @@ struct oal_consumer : public core::frame_consumer
     }
 };
 
+static constexpr auto old_config_path = L"configuration.system-audio.producer.default-device-name";
+
 spl::shared_ptr<core::frame_consumer> create_consumer(const std::vector<std::wstring>&     params,
                                                       const core::video_format_repository& format_repository,
                                                       const std::vector<spl::shared_ptr<core::video_channel>>& channels,
@@ -354,9 +382,11 @@ spl::shared_ptr<core::frame_consumer> create_consumer(const std::vector<std::wst
     if (params.empty() || !(boost::iequals(params.at(0), L"AUDIO") || boost::iequals(params.at(0), L"SYSTEM-AUDIO")))
         return core::frame_consumer::empty();
 
-    auto device_name = u8(get_param(L"DEVICE_NAME", params, L""));
-    auto s = u8(get_param(L"DELAY", params, L"0"));
-    return spl::make_shared<oal_consumer>(device_name, timespan{s});
+    auto old_name = env::properties().get(old_config_path, L"");
+
+    auto device_name = u8(get_param(L"DEVICE_NAME", params, old_name));
+    auto delay = u8(get_param(L"DELAY", params, L"0"));
+    return spl::make_shared<oal_consumer>(device_name, timespan{delay});
 }
 
 spl::shared_ptr<core::frame_consumer>
@@ -365,9 +395,11 @@ create_preconfigured_consumer(const boost::property_tree::wptree&               
                               const std::vector<spl::shared_ptr<core::video_channel>>& channels,
                               const core::channel_info&                                channel_info)
 {
-    auto device_name = u8(ptree.get(L"device-name", L""));
-    auto s = u8(ptree.get(L"delay", L"0"));
-    return spl::make_shared<oal_consumer>(device_name, timespan{s});
+    auto old_name = env::properties().get(old_config_path, L"");
+
+    auto device_name = u8(ptree.get(L"device-name", old_name));
+    auto delay = u8(ptree.get(L"delay", L"0"));
+    return spl::make_shared<oal_consumer>(device_name, timespan{delay});
 }
 
 } // namespace caspar::oal

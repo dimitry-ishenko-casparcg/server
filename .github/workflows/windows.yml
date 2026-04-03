@@ -11,10 +11,10 @@ jobs:
         runs-on: windows-2022
 
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v6
 
             - name: Download media-scanner
-              uses: robinraju/release-downloader@v1.10
+              uses: robinraju/release-downloader@v1.12
               with:
                   repository: "casparcg/media-scanner"
                   latest: true
@@ -55,10 +55,10 @@ jobs:
                     fi
                   fi
 
-            - uses: actions/upload-artifact@v4
+            - uses: actions/upload-artifact@v7
               with:
-                  name: upload-artifact
                   path: ${{ steps.rename-build.outputs.artifactname }}
+                  archive: false
 
             - name: Copy single file to remote
               uses: garygrossgarten/github-action-scp@v0.8.0
