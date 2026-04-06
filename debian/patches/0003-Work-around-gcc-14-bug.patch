@@ -1,0 +1,69 @@
+From: Dimitry Ishenko <dimitry.ishenko@gmail.com>
+Date: Apr, 07 2026 00:59:40 -0400
+Subject: [PATCH] Work around gcc-14 bug
+
+--- server-2.5-2.5.1~rc3.orig/src/modules/ffmpeg/consumer/ffmpeg_consumer.cpp
++++ server-2.5-2.5.1~rc3/src/modules/ffmpeg/consumer/ffmpeg_consumer.cpp
+@@ -37,11 +37,18 @@
+ #include <core/frame/frame.h>
+ #include <core/video_format.h>
+ 
++#if defined(__GNUC__) && __GNUC__ >= 14
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wstringop-overflow"
++#endif
+ #include <boost/algorithm/string.hpp>
+ #include <boost/filesystem.hpp>
+ #include <boost/format.hpp>
+ #include <boost/property_tree/ptree.hpp>
+ #include <boost/regex.hpp>
++#if defined(__GNUC__) && __GNUC__ >= 14
++#pragma GCC diagnostic pop
++#endif
+ 
+ #pragma warning(push)
+ #pragma warning(disable : 4701)
+--- server-2.5-2.5.1~rc3.orig/src/modules/html/producer/html_producer.cpp
++++ server-2.5-2.5.1~rc3/src/modules/html/producer/html_producer.cpp
+@@ -39,11 +39,18 @@
+ #include <common/os/filesystem.h>
+ #include <common/timer.h>
+ 
++#if defined(__GNUC__) && __GNUC__ >= 14
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wstringop-overflow"
++#endif
+ #include <boost/algorithm/string/predicate.hpp>
+ #include <boost/filesystem.hpp>
+ #include <boost/log/trivial.hpp>
+ #include <boost/property_tree/ptree.hpp>
+ #include <boost/regex.hpp>
++#if defined(__GNUC__) && __GNUC__ >= 14
++#pragma GCC diagnostic pop
++#endif
+ 
+ #include <tbb/concurrent_queue.h>
+ #include <tbb/parallel_for.h>
+--- server-2.5-2.5.1~rc3.orig/src/protocol/amcp/AMCPCommandsImpl.cpp
++++ server-2.5-2.5.1~rc3/src/protocol/amcp/AMCPCommandsImpl.cpp
+@@ -61,6 +61,10 @@
+ #include <future>
+ #include <memory>
+ 
++#if defined(__GNUC__) && __GNUC__ >= 14
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wstringop-overflow"
++#endif
+ #include <boost/algorithm/string.hpp>
+ #include <boost/algorithm/string/regex.hpp>
+ #include <boost/archive/iterators/base64_from_binary.hpp>
+@@ -75,6 +79,9 @@
+ #include <boost/range/adaptor/transformed.hpp>
+ #include <boost/range/algorithm/copy.hpp>
+ #include <boost/regex.hpp>
++#if defined(__GNUC__) && __GNUC__ >= 14
++#pragma GCC diagnostic pop
++#endif
+ 
+ #include <tbb/concurrent_unordered_map.h>
+ 

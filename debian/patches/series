@@ -1,2 +1,3 @@
 0001-Use-system-provided-CEF-package.patch
 0002-Fix-html-module-linking.patch
+0003-Work-around-gcc-14-bug.patch
