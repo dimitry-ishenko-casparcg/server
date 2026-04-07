@@ -1,3 +1,14 @@
+server-2.5 (2.5.1~rc3-1) unstable; urgency=medium
+
+  [ Dimitry Ishenko ]
+  * d/patches: add patch to work around gcc-14 bug
+  * Merge tag 'v2.5.1-rc3' into HEAD
+
+  [ Julian Waller ]
+  * chore: fix arm64 build issue
+
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Mon, 06 Apr 2026 21:05:55 -0400
+
 server-2.5 (2.5.1~rc2-1) unstable; urgency=medium
 
   [ Dimitry Ishenko ]
