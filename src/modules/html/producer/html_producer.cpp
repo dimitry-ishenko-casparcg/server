@@ -39,11 +39,18 @@
 #include <common/os/filesystem.h>
 #include <common/timer.h>
 
+#if defined(__GNUC__) && __GNUC__ == 14
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-overflow"
+#endif
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/regex.hpp>
+#if defined(__GNUC__) && __GNUC__ == 14
+#pragma GCC diagnostic pop
+#endif
 
 #include <tbb/concurrent_queue.h>
 #include <tbb/parallel_for.h>

@@ -63,6 +63,10 @@
 #include <future>
 #include <memory>
 
+#if defined(__GNUC__) && __GNUC__ == 14
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-overflow"
+#endif
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/regex.hpp>
 #include <boost/archive/iterators/base64_from_binary.hpp>
@@ -77,6 +81,9 @@
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/range/algorithm/copy.hpp>
 #include <boost/regex.hpp>
+#if defined(__GNUC__) && __GNUC__ == 14
+#pragma GCC diagnostic pop
+#endif
 
 #include <tbb/concurrent_unordered_map.h>
 
