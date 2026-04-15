@@ -36,9 +36,23 @@ jobs:
                       upload_artifacts: false
                     - os: ubuntu-latest
                       family: debian
+                      distribution: trixie
+                      arch: amd64
+                      container: debian:trixie # Debian 13
+                      apt_prefix: ""
+                      upload_artifacts: false # Because of CEF, this is not built correctly
+                    - os: ubuntu-latest
+                      family: debian
                       distribution: sid
                       arch: amd64
-                      container: debian:sid
+                      container: debian:sid # Debian Testing
+                      apt_prefix: ""
+                      upload_artifacts: false # Because of CEF, this is not built correctly
+                    - os: ubuntu-latest
+                      family: debian
+                      distribution: trixie
+                      arch: amd64
+                      container: debian:trixie
                       apt_prefix: ""
                       upload_artifacts: false # Because of CEF, this is not built correctly
                     - os: ubuntu-latest
@@ -85,9 +99,10 @@ jobs:
 
                   # install some needed tooling
                   $APT_PREFIX apt-get update
-                  $APT_PREFIX apt-get -y install software-properties-common build-essential dpkg-dev debhelper devscripts
+                  $APT_PREFIX apt-get -y install build-essential dpkg-dev debhelper devscripts
 
                   if [[ "${{ matrix.family }}" == "ubuntu" ]]; then
+                    $APT_PREFIX apt-get -y install software-properties-common
                     $APT_PREFIX add-apt-repository ppa:casparcg/ppa
                   fi
 
@@ -164,7 +179,7 @@ jobs:
                   pacman -Syu --noconfirm
                   pacman -S --noconfirm --needed \
                     base-devel cmake ninja pkg-config \
-                    boost ffmpeg glew libglvnd \
+                    boost boost-libs ffmpeg glew libglvnd \
                     onetbb openal sfml \
                     libxrandr simde
               env:
