@@ -157,7 +157,6 @@ void set_keyer(const com_iface_ptr<IDeckLinkProfileAttributes>& attributes,
         if (SUCCEEDED(output->DoesSupportVideoMode(bmdVideoConnectionUnspecified,
                                                    display_mode,
                                                    pixel_format,
-                                                   bmdNoVideoOutputConversion,
                                                    bmdSupportedVideoModeKeying,
                                                    &actualMode,
                                                    &supported)) &&
