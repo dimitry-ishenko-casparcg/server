@@ -37,11 +37,18 @@
 #include <core/frame/frame.h>
 #include <core/video_format.h>
 
+#if defined(__GNUC__) && __GNUC__ == 14
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-overflow"
+#endif
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/regex.hpp>
+#if defined(__GNUC__) && __GNUC__ == 14
+#pragma GCC diagnostic pop
+#endif
 
 #pragma warning(push)
 #pragma warning(disable : 4244)
