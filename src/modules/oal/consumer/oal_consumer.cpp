@@ -247,8 +247,11 @@ struct oal_consumer : public core::frame_consumer
                 &from, AV_SAMPLE_FMT_S32, format_desc_.audio_sample_rate,
                 0, nullptr
             );
+CASPAR_LOG(info) << print() << " initialize: done swr_alloc_set_opts2";
             swr_.reset(raw);
+CASPAR_LOG(info) << print() << " initialize: done swr_.reset";
             swr_init(raw);
+CASPAR_LOG(info) << print() << " initialize: done swr_init";
 
             auto num_silence = delay_.in_frames(format_desc_.fps);
             num_silence = std::clamp<int>(num_silence, 1, format_desc_.fps);
