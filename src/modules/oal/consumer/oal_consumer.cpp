@@ -241,7 +241,7 @@ struct oal_consumer : public core::frame_consumer
             av_channel_layout_default(&from, format_desc_.audio_channels);
             av_channel_layout_default(&to, 2); // stereo
 
-            SwrContext* raw;
+            SwrContext* raw = nullptr;
             swr_alloc_set_opts2(&raw,
                 &to,   AV_SAMPLE_FMT_S16, format_desc_.audio_sample_rate,
                 &from, AV_SAMPLE_FMT_S32, format_desc_.audio_sample_rate,
