@@ -1,3 +1,9 @@
+server-2.5 (2.5.1~rc3-2) unstable; urgency=medium
+
+  * Re-change rebuild for SFML 3.1
+
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Tue, 12 May 2026 17:11:11 -0400
+
 server-2.5 (2.5.1~rc3-1) unstable; urgency=medium
 
   [ Dimitry Ishenko ]
