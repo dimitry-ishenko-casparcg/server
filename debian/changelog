@@ -1,3 +1,73 @@
+server-2.5 (2.5.1-1) unstable; urgency=medium
+
+  [ Dimitry Ishenko ]
+  * d/control: update deps
+  * d/patches: update patches
+  * Add debian watch file
+  * New upstream version 2.5.1
+  * Merge tag 'v2.5.1-stable' into upstream
+  * chore: C++20 is more strict
+  * chore: removed in C++20
+
+  [ Julian Waller ]
+  * v2.5.1-stable
+  * chore: update changelog
+  * fix: CHANNEL_GRID crash #1796
+  * fix: windows build errors
+  * chore: draft changelog for v2.5.1
+  * feat: build with ffmpeg 8.1 on windows
+  * fix: pin build to c++20
+  * fix: decklink producer ffmpeg 8
+  * chore: fedora build fixes
+  * fix: windows throttling processes when not running an opengl window
+  * chore: fix build
+  * chore: fix arm64 build issue
+  * chore: update actions/upload-artifact
+  * fix: windows needs postproc.dll still
+  * feat: cef shared texture (#1730)
+  * chore: fix linux arm64 build
+  * chore: fix windows build
+  * fix: remove avx2 requirement for linux
+  * fix: avoid holding ic_mutex while error handling av_read_frame
+  * fix: gracefully handle transient ENOMEM errors from ffmpeg
+  * fix: recreate decklink producer filters when av-sync drifts to try
+    to preserve sync
+
+  [ C-alcaide ]
+  * build: copy CEF's DirectX Shader Compiler DLLs, so WebGPU can create
+    a device (#1789)
+  * fix: check if decklink supports keying before enabling (#1722)
+  * fix(executor): prevent race condition where slow thread startup
+    drops batch commands
+
+  [ Dimo ]
+  * fix: OAL + screen consumer fixes (#1714)
+  * feat: support FFmpeg 8 (#1715)
+  * fix: support SFML 3 on Linux (#1712)
+  * fix: Remove dependency on libpostproc (#1709)
+
+  [ zcybercomputing ]
+  * fix(decklink): replace removed av_opt_set_int_list macro with
+    av_opt_set_bin (#1771)
+  * fix(decklink): free model name string returned by GetModelName()
+    (#1770)
+  * feat(decklink): add disabled keyer option (#1769)
+
+  [ dependabot[bot] ]
+  * chore(deps): bump actions/checkout from 6 to 7 (#1760)
+  * chore(deps): bump robinraju/release-downloader from 1.10 to 1.12
+    (#1724)
+  * chore(deps): bump actions/checkout from 4 to 6 (#1726)
+
+  [ Niklas P Andersson ]
+  * fix: av_input does not destroy graph_ object before joining worker
+    thread (#1748)
+
+  [ Long Nguyen ]
+  * fix: Add missing `cstdint` include (#1697)
+
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Thu, 17 Sep 2026 11:21:24 -0400
+
 server-2.5 (2.5.0-5) unstable; urgency=medium
 
   * Revert "d/rules: disable AVX2"
