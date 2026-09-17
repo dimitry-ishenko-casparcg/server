@@ -22,7 +22,7 @@ template <typename T, typename L, typename S>
 boost::numeric::ublas::matrix<T, L, S> operator*(const boost::numeric::ublas::matrix<T, L, S>& lhs,
                                                  const boost::numeric::ublas::matrix<T, L, S>& rhs)
 {
-    return boost::numeric::ublas::matrix<T>(boost::numeric::ublas::prod(lhs, rhs));
+    return boost::numeric::ublas::matrix<T, L, S>(boost::numeric::ublas::prod(lhs, rhs));
 }
 template <typename T, typename L, typename S1, typename S2>
 boost::numeric::ublas::vector<T, S1> operator*(const boost::numeric::ublas::vector<T, S1>&    lhs,
