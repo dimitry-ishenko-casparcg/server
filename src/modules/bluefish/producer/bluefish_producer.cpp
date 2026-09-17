@@ -423,11 +423,11 @@ struct bluefish_producer
                 std::lock_guard<std::mutex> lock(state_mutex_);
                 state_["file/name"]              = model_name_;
                 state_["file/path"]              = device_index_;
-                state_["file/video/width"]       = static_cast<long>(width);
-                state_["file/video/height"]      = static_cast<long>(height);
+                state_["file/video/width"]       = width;
+                state_["file/video/height"]      = height;
                 state_["file/audio/sample-rate"] = format_desc_.audio_sample_rate;
                 state_["file/audio/channels"]    = format_desc_.audio_channels;
-                state_["file/fps"]               = static_cast<double>(fps);
+                state_["file/fps"]               = fps;
                 state_["profiler/time"]          = {frame_timer.elapsed(), fps};
                 state_["buffer"]                 = {frame_buffer_.size(), frame_buffer_.capacity()};
             }
@@ -445,12 +445,12 @@ struct bluefish_producer
                 auto src_audio = alloc_frame();
 
                 // video
-                src_video->format           = AV_PIX_FMT_RGB24;
-                src_video->width            = width;
-                src_video->height           = height;
-                src_video->interlaced_frame = !is_progressive;
-                src_video->top_field_first  = height != 486;
-                src_video->key_frame        = 1;
+                src_video->format = AV_PIX_FMT_RGB24;
+                src_video->width  = width;
+                src_video->height = height;
+                src_video->flags |= is_progressive == 0u ? AV_FRAME_FLAG_INTERLACED : 0;
+                src_video->flags |= height != 486 ? AV_FRAME_FLAG_TOP_FIELD_FIRST : 0;
+                src_video->flags |= AV_FRAME_FLAG_KEY;
                 // src_video->display_picture_number = frames_captured;
                 src_video->pts = capture_ts;
 

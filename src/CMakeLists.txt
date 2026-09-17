@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.16)
 project("CasparCG Server")
 set(CONFIG_VERSION_MAJOR 2)
 set(CONFIG_VERSION_MINOR 5)
-set(CONFIG_VERSION_BUG 0)
+set(CONFIG_VERSION_BUG 1)
 set(CONFIG_VERSION_TAG "Stable")
 
 # support for language servers (eg, clangd or ccls)

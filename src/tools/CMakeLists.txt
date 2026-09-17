@@ -1,7 +1,10 @@
 cmake_minimum_required (VERSION 3.16)
 
 add_executable(bin2c bin2c.cpp)
-target_compile_features(bin2c PRIVATE cxx_std_17)
+set_target_properties(bin2c PROPERTIES
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED ON
+        CXX_EXTENSIONS OFF)
 
 target_include_directories(bin2c PRIVATE ..)
 
