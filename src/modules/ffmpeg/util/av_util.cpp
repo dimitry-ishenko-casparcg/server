@@ -12,10 +12,11 @@ extern "C" {
 #include <libavutil/pixfmt.h>
 }
 
-#include <array>
 #include <tbb/parallel_for.h>
 #include <tbb/parallel_invoke.h>
 
+#include <concepts>
+#include <source_location>
 #include <tuple>
 
 namespace caspar { namespace ffmpeg {
@@ -412,6 +413,186 @@ uint64_t get_channel_layout_mask_for_channels(int channel_count)
     av_channel_layout_uninit(&layout);
 
     return channel_layout;
+}
+
+#if LIBAVFILTER_VERSION_INT >= AV_VERSION_INT(10, 6, 0)
+
+namespace {
+
+template<typename T>
+auto get_supported(const AVCodecContext* avctx, const AVCodec* codec, AVCodecConfig config)
+{
+    const void* data = nullptr;
+    int size = 0;
+    FF(avcodec_get_supported_config(avctx, codec, config, 0, &data, &size));
+    return std::span{static_cast<const T*>(data), static_cast<std::size_t>(size)};
+}
+
+template<typename T>
+void set_array(AVFilterContext* target, const char* name, AVOptionType type, std::span<const T> values)
+{
+    FF(av_opt_set_array(target, name, AV_OPT_SEARCH_CHILDREN | AV_OPT_ARRAY_REPLACE,
+                        0, static_cast<unsigned>(values.size()), type, values.data()));
+}
+
+}
+
+std::span<const AVPixelFormat> get_supported_pixel_formats(const AVCodecContext* avctx, const AVCodec* codec)
+{
+    return get_supported<AVPixelFormat>(avctx, codec, AV_CODEC_CONFIG_PIX_FORMAT);
+}
+void set_pixel_formats(AVFilterContext* target, std::span<const AVPixelFormat> values)
+{
+    set_array(target, "pixel_formats", AV_OPT_TYPE_PIXEL_FMT, values);
+}
+
+std::span<const AVSampleFormat> get_supported_sample_formats(const AVCodecContext* avctx, const AVCodec* codec)
+{
+    return get_supported<AVSampleFormat>(avctx, codec, AV_CODEC_CONFIG_SAMPLE_FORMAT);
+}
+void set_sample_formats(AVFilterContext* target, std::span<const AVSampleFormat> values)
+{
+    set_array(target, "sample_formats", AV_OPT_TYPE_SAMPLE_FMT, values);
+}
+
+std::span<const int> get_supported_sample_rates(const AVCodecContext* avctx, const AVCodec* codec)
+{
+    return get_supported<int>(avctx, codec, AV_CODEC_CONFIG_SAMPLE_RATE);
+}
+void set_sample_rates(AVFilterContext* target, std::span<const int> values)
+{
+    set_array(target, "samplerates", AV_OPT_TYPE_INT, values);
+}
+
+std::span<const AVChannelLayout> get_supported_channel_layouts(const AVCodecContext* avctx, const AVCodec* codec)
+{
+    return get_supported<AVChannelLayout>(avctx, codec, AV_CODEC_CONFIG_CHANNEL_LAYOUT);
+}
+void set_channel_layouts(AVFilterContext* target, std::span<const AVChannelLayout> values)
+{
+    set_array(target, "channel_layouts", AV_OPT_TYPE_CHLAYOUT, values);
+}
+
+#else
+
+namespace {
+
+const AVCodec* resolve_codec(const AVCodecContext* avctx, const AVCodec* codec, AVMediaType expected,
+    const std::source_location& location = std::source_location::current())
+{
+    if (!codec)
+        codec = avctx->codec;
+    if (codec->type != expected)
+        FF_RET(AVERROR(EINVAL), location.function_name());
+    return codec;
+}
+
+template <typename T>
+void set_bin(AVFilterContext* target, const char* name, std::span<const T> values)
+{
+    FF(av_opt_set_bin(target, name, reinterpret_cast<const uint8_t*>(values.data()),
+                      static_cast<int>(values.size_bytes()), AV_OPT_SEARCH_CHILDREN));
+}
+
+template <typename T, std::predicate<const T&> Fn>
+constexpr auto span_until_if(const T* data, Fn is_sentinel)
+{
+    std::size_t size = 0;
+    if (data) {
+        while (!is_sentinel(data[size])) ++size;
+    }
+    return std::span{data, size};
+}
+
+template <typename T>
+constexpr auto span_until(const T* data, std::type_identity_t<T> sentinel) noexcept
+{
+    return span_until_if(data, [sentinel](const T& v) { return v == sentinel; });
+}
+
+}
+
+std::span<const AVPixelFormat> get_supported_pixel_formats(const AVCodecContext* avctx, const AVCodec* codec)
+{
+    codec = resolve_codec(avctx, codec, AVMEDIA_TYPE_VIDEO);
+    return span_until(codec->pix_fmts, AV_PIX_FMT_NONE);
+}
+void set_pixel_formats(AVFilterContext* target, std::span<const AVPixelFormat> values)
+{
+    set_bin(target, "pix_fmts", values);
+}
+
+std::span<const AVSampleFormat> get_supported_sample_formats(const AVCodecContext* avctx, const AVCodec* codec)
+{
+    codec = resolve_codec(avctx, codec, AVMEDIA_TYPE_AUDIO);
+    return span_until(codec->sample_fmts, AV_SAMPLE_FMT_NONE);
+}
+void set_sample_formats(AVFilterContext* target, std::span<const AVSampleFormat> values)
+{
+    set_bin(target, "sample_fmts", values);
+}
+
+std::span<const int> get_supported_sample_rates(const AVCodecContext* avctx, const AVCodec* codec)
+{
+    codec = resolve_codec(avctx, codec, AVMEDIA_TYPE_AUDIO);
+    return span_until(codec->supported_samplerates, 0);
+}
+void set_sample_rates(AVFilterContext* target, std::span<const int> values)
+{
+    set_bin(target, "sample_rates", values);
+}
+
+std::span<const AVChannelLayout> get_supported_channel_layouts(const AVCodecContext* avctx, const AVCodec* codec)
+{
+    codec = resolve_codec(avctx, codec, AVMEDIA_TYPE_AUDIO);
+    return span_until_if(codec->ch_layouts, [](auto&& l) { return 0 == av_channel_layout_check(&l); });
+}
+void set_channel_layouts(AVFilterContext* avctx, std::span<const AVChannelLayout> values)
+{
+    // TODO
+}
+
+#endif
+
+AVChannelLayout get_channel_layout_default(int nb_channels)
+{
+    AVChannelLayout retval{};
+    av_channel_layout_default(&retval, nb_channels);
+    return retval;
+}
+
+AVFilterContext*
+create_buffersink(AVFilterGraph* graph, const char* name, std::span<const AVPixelFormat> pixel_formats)
+{
+    AVFilterContext* retval = FFMEM(avfilter_graph_alloc_filter(graph, avfilter_get_by_name("buffersink"), name));
+    if (!pixel_formats.empty()) {
+        set_pixel_formats(retval, pixel_formats);
+    }
+    FF(avfilter_init_str(retval, nullptr));
+    return retval;
+}
+
+AVFilterContext*
+create_abuffersink(AVFilterGraph* graph, const char* name, std::span<const AVSampleFormat> sample_formats,
+    std::span<const int> sample_rates, std::span<const AVChannelLayout> channel_layouts)
+{
+    AVFilterContext* retval = FFMEM(avfilter_graph_alloc_filter(graph, avfilter_get_by_name("abuffersink"), name));
+    if (!sample_formats.empty()) {
+        set_sample_formats(retval, sample_formats);
+    }
+    if (!sample_rates.empty()) {
+        set_sample_rates(retval, sample_rates);
+    }
+    if (!channel_layouts.empty()) {
+        set_channel_layouts(retval, channel_layouts);
+    }
+#if LIBAVFILTER_VERSION_INT < AV_VERSION_INT(10, 6, 0)
+    else {
+        FF(av_opt_set_int(retval, "all_channel_counts", 1, AV_OPT_SEARCH_CHILDREN));
+    }
+#endif
+    FF(avfilter_init_str(retval, nullptr));
+    return retval;
 }
 
 }} // namespace caspar::ffmpeg

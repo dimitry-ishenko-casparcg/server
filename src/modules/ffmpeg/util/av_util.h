@@ -2,6 +2,7 @@
 
 extern "C" {
 #include <libavutil/pixfmt.h>
+#include <libavutil/samplefmt.h>
 }
 
 #include <core/frame/frame.h>
@@ -12,13 +13,17 @@ extern "C" {
 
 #include <map>
 #include <memory>
+#include <span>
 #include <vector>
 
-struct AVFrame;
-struct AVPacket;
-struct AVFilterContext;
+struct AVChannelLayout;
+struct AVCodec;
 struct AVCodecContext;
 struct AVDictionary;
+struct AVFilterContext;
+struct AVFilterGraph;
+struct AVFrame;
+struct AVPacket;
 
 namespace caspar { namespace ffmpeg {
 
@@ -47,5 +52,24 @@ AVDictionary*                      to_dict(std::map<std::string, std::string>&& 
 std::map<std::string, std::string> to_map(AVDictionary** dict);
 
 uint64_t get_channel_layout_mask_for_channels(int channel_count);
+
+std::span<const AVPixelFormat> get_supported_pixel_formats(const AVCodecContext*, const AVCodec*);
+void set_pixel_formats(AVFilterContext*, std::span<const AVPixelFormat>);
+
+std::span<const AVSampleFormat> get_supported_sample_formats(const AVCodecContext*, const AVCodec*);
+void set_sample_formats(AVFilterContext*, std::span<const AVSampleFormat>);
+
+std::span<const int> get_supported_sample_rates(const AVCodecContext*, const AVCodec*);
+void set_sample_rates(AVFilterContext*, std::span<const int>);
+
+std::span<const AVChannelLayout> get_supported_channel_layouts(const AVCodecContext*, const AVCodec*);
+void set_channel_layouts(AVFilterContext*, std::span<const AVChannelLayout>);
+AVChannelLayout get_channel_layout_default(int nb_channels);
+
+AVFilterContext* create_buffersink(AVFilterGraph*, const char* name, std::span<const AVPixelFormat> = {});
+
+AVFilterContext* create_abuffersink(AVFilterGraph*, const char* name,
+    std::span<const AVSampleFormat> = {}, std::span<const int> = {}, std::span<const AVChannelLayout> = {}
+);
 
 }} // namespace caspar::ffmpeg
