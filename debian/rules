@@ -1,7 +1,8 @@
 #!/usr/bin/make -f
 export DH_VERBOSE = 1
 
-SERVER_NAME := casparcg-server-$(shell dpkg-parsechangelog -SVersion | cut -d. -f1,2)
+export SERVER_VERS := $(shell dpkg-parsechangelog -SVersion | cut -d. -f1,2)
+export SERVER_NAME := casparcg-server-$(SERVER_VERS)
 
 %:
 	dh $@ -Dsrc
