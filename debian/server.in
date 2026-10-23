@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+
+import gzip, logging, os, shutil, signal, subprocess, sys, threading
+from logging.handlers import TimedRotatingFileHandler
+from pathlib import Path
+import xml.etree.ElementTree as et
+
+casparcg = "@SERVER_NAME@"
+casparcg_config = "casparcg.config"
+casparcg_log = "casparcg.log"
+
+def xdg(var, default): return Path(os.environ.get(var) or (Path.home() / default))
+
+shell = Path("/usr/lib") / casparcg / casparcg
+default_config = Path("/usr/lib") / casparcg / casparcg_config
+config = xdg("XDG_CONFIG_HOME", ".config") / casparcg / casparcg_config
+log = xdg("XDG_STATE_HOME", ".local/state") / casparcg / casparcg_log
+
+def rotation_settings():
+    when, interval, keep = "midnight", 1, 14
+    el = et.parse(config).getroot().find("log-rotate")
+    if el is not None:
+        when = el.get("when", when)
+        interval = int(el.get("interval", interval))
+        keep = int(el.get("keep", keep))
+    return when, interval, keep
+
+def compress(source, target):
+    with open(source, "rb") as fs, gzip.open(target, "wb") as ft:
+        shutil.copyfileobj(fs, ft)
+    os.remove(source)
+
+def pump(stream, console, logger):
+    for line in iter(stream.readline, b""):
+        try:
+            console.write(line)
+            console.flush()
+        except (OSError, ValueError): pass
+        logger.info(line.decode("utf8", errors="replace").rstrip("\r\n"))
+
+####################
+if not config.exists():
+    config.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(default_config, config)
+log.parent.mkdir(parents=True, exist_ok=True)
+
+when, interval, keep = rotation_settings()
+handler = TimedRotatingFileHandler(filename=log,
+    when=when, interval=interval, backupCount=keep, encoding="utf8"
+)
+handler.namer = lambda name: name + ".gz"
+handler.rotator = compress
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logger.propagate = False
+logger.addHandler(handler)
+
+proc = subprocess.Popen([shell, config], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+signal.signal(signal.SIGINT , lambda *_: proc.send_signal(signal.SIGINT))
+signal.signal(signal.SIGTERM, lambda *_: proc.send_signal(signal.SIGTERM))
+
+threads = [threading.Thread(target=pump, args=(proc.stdout, sys.stdout.buffer, logger), daemon=True),
+           threading.Thread(target=pump, args=(proc.stderr, sys.stderr.buffer, logger), daemon=True)]
+
+for th in threads: th.start()
+code = proc.wait()
+for th in threads: th.join(timeout=3)
+
+sys.exit(code if code >= 0 else 128 - code)

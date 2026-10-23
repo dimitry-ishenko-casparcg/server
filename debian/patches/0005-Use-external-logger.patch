@@ -1,0 +1,26 @@
+From: Dimitry Ishenko <dimitry.ishenko@gmail.com>
+Date: Oct, 22 2026 19:51:28 -0400
+Subject: [PATCH] Use external logger
+
+The package provides a wrapper that captures the logs from stdout and stderr,
+and then compresses and rotates them at a configurable interval.
+
+--- server-2.5-2.5.1.orig/src/shell/casparcg.config
++++ server-2.5-2.5.1/src/shell/casparcg.config
+@@ -3,7 +3,7 @@
+ <configuration>
+     <paths>
+         <media-path>media/</media-path>
+-        <log-path disable="false">log/</log-path>
++        <log-path disabled="true" />
+         <data-path>data/</data-path>
+         <template-path>template/</template-path>
+     </paths>
+@@ -34,6 +34,7 @@
+ <!--
+ <log-level> info  [trace|debug|info|warning|error|fatal]</log-level>
+ <log-align-columns>true [true|false]</log-align-columns>
++<log-rotate when="midnight [midnight|W0..W6|D|H] (W0: weekly/Monday, D: daily, H: hourly)" interval="1 [1..] (used only with D and H)" keep="14 [0..] (0: keep all)"/>
+ <template-hosts>
+     <template-host>
+         <video-mode />

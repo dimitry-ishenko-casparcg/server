@@ -4,9 +4,27 @@ export DH_VERBOSE = 1
 export SERVER_VERS := $(shell dpkg-parsechangelog -SVersion | cut -d. -f1,2)
 export SERVER_NAME := casparcg-server-$(SERVER_VERS)
 
+D := debian/$(SERVER_NAME)
+
 %:
 	dh $@ -Dsrc
 
 override_dh_auto_configure:
 	dh_auto_configure -- -DCASPARCG_BINARY_NAME=$(SERVER_NAME) \
 		-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DUSE_STATIC_BOOST=OFF -DUSE_SYSTEM_CEF=ON
+
+execute_after_dh_auto_install:
+	install -d $(D)/usr/lib
+	mv $(D)/usr/share/$(SERVER_NAME) $(D)/usr/lib/ # relocate casparcg.config
+	mv $(D)/usr/bin/* $(D)/usr/lib/$(SERVER_NAME)/ # relocate casparcg-server-*
+
+	install -D -m755 debian/server.in $(D)/usr/bin/$(SERVER_NAME)
+	sed -e "s/@SERVER_NAME@/$(SERVER_NAME)/g" -i $(D)/usr/bin/$(SERVER_NAME)
+
+	install -D -m644 debian/desktop.in $(D)/usr/share/applications/$(SERVER_NAME).desktop
+	sed -e "s/@SERVER_NAME@/$(SERVER_NAME)/g" \
+		-e "s/@SERVER_VERS@/$(SERVER_VERS)/g" -i $(D)/usr/share/applications/$(SERVER_NAME).desktop
+
+	for s in 48x48 128x128 256x256; do \
+		install -D -m644 debian/icon-$$s.png $(D)/usr/share/icons/hicolor/$$s/apps/$(SERVER_NAME).png; \
+	done

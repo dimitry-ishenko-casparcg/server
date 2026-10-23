@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=CasparCG Server
+Comment=CasparCG Server @SERVER_VERS@
+Type=Application
+Icon=@SERVER_NAME@
+Exec=@SERVER_NAME@
+Terminal=true
+Categories=AudioVideo;Audio;Video;Graphics
