@@ -9,7 +9,7 @@ casparcg = "@SERVER_NAME@"
 casparcg_config = "casparcg.config"
 casparcg_log = "casparcg.log"
 
-def xdg(var, default): return Path(os.environ.get(var) or (Path.home() / default))
+def xdg(name, def_value): return Path(os.environ.get(name) or (Path.home() / def_value))
 
 shell = Path("/usr/lib") / casparcg / casparcg
 default_config = Path("/usr/lib") / casparcg / casparcg_config
