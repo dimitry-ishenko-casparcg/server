@@ -12,9 +12,12 @@ casparcg_log = "casparcg.log"
 def xdg(name, def_value): return Path(os.environ.get(name) or (Path.home() / def_value))
 
 shell = Path("/usr/lib") / casparcg / casparcg
-default_config = Path("/usr/lib") / casparcg / casparcg_config
-config = xdg("XDG_CONFIG_HOME", ".config") / casparcg / casparcg_config
+template_config = Path("/usr/lib") / casparcg / casparcg_config
+default_config = xdg("XDG_CONFIG_HOME", ".config") / casparcg / casparcg_config
 log = xdg("XDG_STATE_HOME", ".local/state") / casparcg / casparcg_log
+
+supplied = len(sys.argv) > 1
+config = Path(sys.argv[1]) if supplied else default_config
 
 def rotation_settings():
     when, interval, keep = "midnight", 1, 14
@@ -39,9 +42,11 @@ def pump(stream, console, logger):
         logger.info(line.decode("utf8", errors="replace").rstrip("\r\n"))
 
 ####################
-if not config.exists():
+if not config.is_file():
+    if supplied: raise FileNotFoundError(f"Config not found: '{config}'")
     config.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(default_config, config)
+    shutil.copyfile(template_config, config)
+
 log.parent.mkdir(parents=True, exist_ok=True)
 
 when, interval, keep = rotation_settings()
