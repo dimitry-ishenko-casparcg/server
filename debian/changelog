@@ -1,3 +1,9 @@
+server-2.5 (2.5.1-5) unstable; urgency=medium
+
+  * Add patch for FFmpeg 9
+
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Fri, 30 Oct 2026 23:18:41 -0400
+
 server-2.5 (2.5.1-4) unstable; urgency=medium
 
   * server.in: respect log-path setting in the config
