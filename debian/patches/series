@@ -3,3 +3,4 @@
 0003-Remove-deprecated-boost-system-component.patch
 0004-Work-around-gcc-14-bug.patch
 0005-Use-external-logger.patch
+0006-fix-ffmpeg-all_channels_count-has-been-removed-in-FF.patch
