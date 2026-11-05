@@ -1,3 +1,40 @@
+server-2.5 (2.5.2~pre1-1) unstable; urgency=medium
+
+  [ Dimitry Ishenko ]
+  * d/patches: remove upstreamed patches
+  * Merge tag 'upstream/2.5.2-pre1' into debian
+  * Merge branch 'v2.5.x' into upstream
+  * fix: windows build
+  * fix: "unscale" perspective for scaled images
+  * fix: restore MIXER commands for scaled images
+  * matrix: split get_vertex_matrix() into pre and post
+  * fix(ffmpeg): all_channels_count has been removed in FFmpeg 9 (#1835)
+
+  [ Robert Nagy ]
+  * fix(decklink): v210 conversion swapped red/blue and Cb/Cr
+
+  [ Stephane Bhiri ]
+  * fix(core): synchronize channel monitor snapshot publication and
+    reads (#1819)
+  * fix(html): preserve producers on cancelled and failed subframe loads
+    (#1818)
+
+  [ zcybercomputing ]
+  * build(linux): add missing libicu-dev to install-dependencies (#1822)
+  * fix(html): work around CEF utility subprocess stack-smashing crash
+    (#1773)
+
+  [ kezul80 ]
+  * fix(output): clear state when the channel has no consumers (#1816)
+  * fix(mixer): use distance, not cross product, for clip/crop edge test
+    (#1814)
+
+  [ C-alcaide ]
+  * fix(mixer): the sub-720 BT.601 rule overrode tagged metadata instead
+    of filling in for it (#1775)
+
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Thu, 05 Nov 2026 12:27:26 -0500
+
 server-2.5 (2.5.1-5) unstable; urgency=medium
 
   * Add patch for FFmpeg 9
