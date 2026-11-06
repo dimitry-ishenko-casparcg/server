@@ -1,3 +1,13 @@
+server-2.5 (2.5.2~pre2-1) unstable; urgency=medium
+
+  * Merge tag 'upstream/2.5.2-pre2' into debian
+  * Merge branch 'v2.5.x' into upstream
+  * fix: easeoutinback tween name (removed extra 't')
+  * fix: wipe direction
+  * fix: wipe transition
+
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Fri, 06 Nov 2026 00:34:37 -0500
+
 server-2.5 (2.5.2~pre1-1) unstable; urgency=medium
 
   [ Dimitry Ishenko ]
