@@ -1,3 +1,9 @@
+server-2.5 (2.5.2~pre2-2) unstable; urgency=medium
+
+  * d/control: libcef142-data is now part of libcef142
+
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Tue, 10 Nov 2026 00:26:46 -0500
+
 server-2.5 (2.5.2~pre2-1) unstable; urgency=medium
 
   * Merge tag 'upstream/2.5.2-pre2' into debian
