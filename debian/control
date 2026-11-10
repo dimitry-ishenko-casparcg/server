@@ -45,7 +45,6 @@ Depends:
  ${shlibs:Depends},
  ${misc:Depends},
  libcef142,
- libcef142-data,
  python3:any,
 Description: CasparCG Server
  CasparCG Server is a Windows and Linux software used to play out professional
