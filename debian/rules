@@ -11,7 +11,7 @@ D := debian/$(SERVER_NAME)
 
 override_dh_auto_configure:
 	dh_auto_configure -- -DCASPARCG_BINARY_NAME=$(SERVER_NAME) \
-		-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DUSE_STATIC_BOOST=OFF -DUSE_SYSTEM_CEF=ON
+		-DCMAKE_POLICY_DEFAULT_CMP0099=NEW -DUSE_STATIC_BOOST=OFF -DUSE_SYSTEM_CEF=ON
 
 execute_after_dh_auto_install:
 	install -d $(D)/usr/lib
