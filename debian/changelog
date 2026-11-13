@@ -1,3 +1,11 @@
+server-2.5 (2.5.2~pre2-3+cccp1) unstable; urgency=medium
+
+  * d/rule: forward RPATH from libcef-api14200
+  * d/control: depend on libcef-api14200
+  * d/patches: build against CEF API 14200
+
+ -- Dimitry Ishenko <dimitry.ishenko@gmail.com>  Thu, 12 Nov 2026 22:17:50 -0500
+
 server-2.5 (2.5.2~pre2-2) unstable; urgency=medium
 
   * d/control: libcef142-data is now part of libcef142
